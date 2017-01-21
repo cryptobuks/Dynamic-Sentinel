@@ -1,5 +1,7 @@
+**Copyright (c) 2017 Silk Network**
 # DarkSilk Sentinel
 An all-powerful toolset for DarkSilk
+
 
 ## Installation
 Make sure darksilkd is running with a correctly configured stormnode.conf. The stormnode names in stormnode.conf should match the stormnodes listed config.py's "stormnodes"
