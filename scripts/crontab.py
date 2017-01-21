@@ -1,335 +1,183 @@
 #!/usr/bin/env python
-
-"""
-    - look through events table, process what we're suppose to do
-    - can include building fee transactions, submitting govobjs to the network
-
-"""
-
-import sys
-sys.path.append("lib")
-
-from governance  import GovernanceObject, Event
-import libmysql 
-import config 
-import misc 
-import darksilkd
-import random
-import govtypes
-
-"""
- 
- scripts/crontab.py 
- ------------------------------- 
- 
-
- FLAT MODULE FOR PROCESSING SENTINEL EVENTS
- 
- - prepare_events
-
-    This process creates the collateral/burned transaction which allows the governance object to propagate
-
- - submit_events
-
-    Upon maturation of the collateral tranasction, the system will submit an rpc command, 
-    propagating the object thoughout the network
-
-"""
-
-CONFIRMATIONS_REQUIRED = 7
-
-def clear_events():
-    sql = "delete from event"
-    libmysql.db.query(sql)
-    nrows = libmysql.db.affected_rows() 
-    libmysql.db.commit()
-    return nrows
-
-def clear_governance_objects():
-    sql = "delete from governance_object"
-    libmysql.db.query(sql)
-    nrows = libmysql.db.affected_rows() 
-    libmysql.db.commit()
-    return nrows
-
-def clear_superblocks():
-    sql = "delete from superblock"
-    libmysql.db.query(sql)
-    nrows = libmysql.db.affected_rows() 
-    libmysql.db.commit()
-    return nrows
-
-def clear_proposals():
-    sql = "delete from proposal"
-    libmysql.db.query(sql)
-    nrows = libmysql.db.affected_rows() 
-    libmysql.db.commit()
-    return nrows
-
-def reset():
-    clear_events()
-    clear_governance_objects()
-    clear_superblocks()
-    clear_proposals()	
-
-def prepare_events():
-    sql = "select id from event where start_time < NOW() and error_time = 0 and prepare_time = 0 limit 1"
-
-    libmysql.db.query(sql)
-    res = libmysql.db.store_result()
-    row = res.fetch_row()
-    if row:
-        event = Event()
-        event.load(row[0])
-
-        govobj = GovernanceObject()
-        govobj.load(event.get_id())
-
-        print "# PREPARING EVENTS FOR DARKSILK NETWORK"
-        print
-        print " -- cmd : ", govobj.get_prepare_command()
-        print
-
-        result = darksilkd.rpc_command(govobj.get_prepare_command())
-        print " -- executing event ... getting fee_tx hash"
-
-        # todo: what should it do incase of error?
-        if misc.is_hash(result):
-            hashtx = misc.clean_hash(result)
-            print " -- got hash:", hashtx
-            govobj.update_field("object_fee_tx", hashtx)
-            govobj.save()
-            event.update_field("prepare_time", misc.get_epoch())
-            event.save()
-            libmysql.db.commit()
-
-            return 1
-        else:
-            print " -- got error:", result
-            event.update_field("error_time", misc.get_epoch())
-            event.save()
-            # separately update event error message
-            event.update_error_message(result)
-            libmysql.db.commit()
-
-    return 0
-
-
-def submit_events():
-    sql = "select id from event where start_time < NOW() and prepare_time < NOW() and prepare_time > 0 and submit_time = 0 limit 1"
-
-    libmysql.db.query(sql)
-    res = libmysql.db.store_result()
-    row = res.fetch_row()
-    if row:
-        event = Event()
-        event.load(row[0])
-
-        govobj = GovernanceObject()
-        print event.get_id()
-        govobj.load(event.get_id())
-        hash = govobj.get_field("object_fee_tx")
-
-        print "# SUBMIT PREPARED EVENTS FOR DARKSILK NETWORK"
-
-        print
-        print " -- cmd : ", govobj.get_submit_command()
-        print        
-        print " -- executing event ... getting fee_tx hash"
-
-        if misc.is_hash(hash):
-            tx = darksilkd.CTransaction()
-            if tx.load(hash):
-                print " -- confirmations: ", tx.get_confirmations()
-                
-                if tx.get_confirmations() >= CONFIRMATIONS_REQUIRED:
-                    event.set_submitted()   
-                    print " -- executing event ... getting fee_tx hash"
-
-                    result = darksilkd.rpc_command(govobj.get_submit_command())
-                    if misc.is_hash(result):
-                        print " -- got result", result
-
-                        govobj.update_field("object_hash", result)
-                        event.save()
-                        govobj.save()
-                        libmysql.db.commit()
-                        return 1
-                    else:
-                        print " -- got error", result
-                else:
-                    print " -- waiting for confirmation"
-
-        return 0
-
-#
-# AUTONOMOUS VOTING 
-#
-# - CHECK VALIDITY, VOTE AFFIRMATIVE
-# - IF INVALID, VOTE FOR DELETION
-
-def autovote():
-    pass
-
-#
-# PROCESS BUDGET
-#
-# - CREATE SUPERBLOCKS
-
-def process_budget():
-    # 12.1 will use manual submission processes
-    pass
-
-    # # GET NEXT EVENT EPOCH
-
-    # next_budget_date = misc.first_day_of_next_month()
-    # event_epoch = next_budget_date.strftime('%s')
-
-    # # QUERY SQL TO GET GOVERNANCE OBJECTS THAT REQUIRE PAYMENT
-
-    # """
-    #     OBJECTS WHICH REQUIRE PAYMENTS WILL HAVE:
-   
-    #     - abs yes count > 10 percent of network votes
-    #     - start_epoch <= event_epoch
-    #     - end_epoch >= event_epoch
-    #     - action:funding > 10p support
-    #     - action:valid > 10p support
-    # """
-
-    # sql = """
-
-    #     SELECT 
-    #         g.id,
-    #         p.governence_object_id,
-    #         a.governence_object_id,
-    #         a.absolute_yes_count,
-    #         p.`payment_address`,
-    #         p.`payment_amount`,
-    #         p.`start_epoch`
-    #     FROM
-    #         governance_object g,
-    #         proposal p,
-    #         action a,
-    #         action v,
-    #         stormnode s
-    #     ON
-    #         g.id = p.governance_object_id and
-    #         a.id = g.action_funding_id and 
-    #         v.id = g.action_valid_id 
-    #     WHERE
-    #         a.absolute_yes_count > count(m.id)/10 and
-    #         v.absolute_yes_count > count(m.id)/10 and
-    #         p.start_epoch <= %d and
-    #         p.end_epoch >= %d
-    #     ORDER BY
-    #         a.absolute_yes_count DESC; 
-    # """ % (event_epoch)
-
-    # # GROUP ALL OF THE TABLES TOGETHER TO GET THE CORRECT INFORMATION ABOUT OUR BUDGET!
-
-    # cumulative = 0
-    # allowed = 0
-
-    # # query for allowed amount from darksilkd
-
-    # #
-    # #    BUILD THE ITEMS FOR THE DARKSILKD GOVERNANCE OBJECT , WE NEED:
-    # #       - A LIST OF ADDRESSES
-    # #       - A LIST OF AMOUNTS
-    # #       - THEN WE'LL COMPILE TWO STRINGS DELIMITED ADDRESSES AND AMOUNTS
-    # #    
-
-    # list_addresses = []
-    # list_amount = []
-
-    # libmysql.db.query(sql)
-    # res = libmysql.db.store_result()
-    # row = res.fetch_row()
-    # if row:
-    #     address, amount = row[4], row[5]
-
-    #     cumulative += amount
-    #     if cumulative < amount: #opps, I guess we're poor
-    #         pass
-    #     else:
-    #         list_addresses.append(address)
-    #         list_amount.append(amount)
-
-    # # CREATE OUR DELIMITED ADDRESSES / AMOUNTS / SUPERBLOCK NAME
-
-    # addresses = ".".join(list_addresses)
-    # amounts = ".".join(list_amount)
-    # superblock_name = "sb" + random.randint(1000000, 9999999)
-
-    # record = {
-    #     'payment_addresses' : addresses,
-    #     'payment_amounts' : payment_amounts, 
-    #     'event_epoch' : event_epoch
-    # }
-
-    # # QUERY SYSTEM FOR THIS SUPERBLOCK 
-
-    # sql = """
-    #     select
-    #         id
-    #     from
-    #         `trigger.superblock`
-    #     where
-    #         payment_addresses = 's(payment_addresses)%' and 
-    #         payment_amounts = 's(payment_amounts)%' and 
-    #         event_epoch >= 's(event_epoch)%'
-    # """
-
-    # # SEE IF SUPERBLOCK ALREADY EXISTS
-        
-    # libmysql.db.query(sql)
-    # res = libmysql.db.store_result()
-    # row = res.fetch_row()
-    # if not row:
-        
-    #     # IF THIS SUPERBLOCK DOESN'T EXIST WE SHOULD CREATE IT
-    #     # -- TODO : TIMING/RACECONDITIONS
-
-    #     parent = GovernanceObject()
-    #     parent.init()
-
-    #     fee_tx = CTransaction()
-
-    #     newObj = GovernanceObject()
-    #     newObj.create_new(parent, superblock_name, govtypes.trigger, govtypes.FIRST_REVISION, fee_tx)
-    #     last_id = newObj.save()
-
-    #     print last_id
-
-    #     if last_id != None:
-    #         # ADD OUR PROPOSAL AS A SUB-OBJECT WITHIN GOVERNANCE OBJECT
-
-    #         c = trigger()
-    #         c.set_field("governance_object_id", last_id)
-    #         c.set_field("type", govtypes.trigger)
-    #         c.set_field("subtype", "superblock")
-    #         c.set_field("superblock_name", superblock_name)
-    #         c.set_field("start_epoch", start_epoch)
-    #         c.set_field("payment_addresses", addresses)
-    #         c.set_field("payment_amounts", amounts)
-
-    #         # APPEND TO GOVERNANCE OBJECT
-
-    #         newObj.add_subclass("trigger", c)
-    #         newObj.save()
-
-    #         # CREATE EVENT TO TALK TO DARKSILKD / PREPARE / SUBMIT OBJECT
-
-    #         event = Event()
-    #         event.create_new(last_id)
-    #         event.save()
-    #         libmysql.db.commit()
-
-    #         print "event queued successfully"
-
-    #     else:
-    #         print "error:", newObj.last_error()
-
-    #         # abort mysql commit
-
+import sys, os
+sys.path.append( os.path.join( os.path.dirname(__file__), '..', 'lib' ) )
+sys.path.append( os.path.join( os.path.dirname(__file__), '..') )
+import init
+import config
+import misc
+from darksilkd import DarkSilkDaemon
+from models import Superblock, Proposal, GovernanceObject, Watchdog
+from models import VoteSignals, VoteOutcomes, Transient
+import socket
+from misc import printdbg
+import time
+from bitcoinrpc.authproxy import JSONRPCException
+import signal
+
+
+# sync darksilkd gobject list with our local relational DB backend
+def perform_darksilkd_object_sync(darksilkd):
+    GovernanceObject.sync(darksilkd)
+
+# delete old watchdog objects, create new when necessary
+def watchdog_check(darksilkd):
+    printdbg("in watchdog_check")
+    # delete expired watchdogs
+    for wd in Watchdog.expired(darksilkd):
+        printdbg("\tFound expired watchdog [%s], voting to delete" % wd.object_hash)
+        wd.vote(darksilkd, VoteSignals.delete, VoteOutcomes.yes)
+
+    # now, get all the active ones...
+    active_wd = Watchdog.active(darksilkd)
+    active_count = active_wd.count()
+
+    # none exist, submit a new one to the network
+    if 0 == active_count:
+        # create/submit one
+        printdbg("\tNo watchdogs exist... submitting new one.")
+        wd = Watchdog(created_at = int(time.time()))
+        wd.submit(darksilkd)
+
+    else:
+        wd_list = sorted(active_wd, key=lambda wd: wd.object_hash)
+
+        # highest hash wins
+        winner = wd_list.pop()
+        printdbg("\tFound winning watchdog [%s], voting VALID" % winner.object_hash)
+        winner.vote(darksilkd, VoteSignals.valid, VoteOutcomes.yes)
+
+        # if remaining Watchdogs exist in the list, vote delete
+        for wd in wd_list:
+            printdbg("\tFound losing watchdog [%s], voting DELETE" % wd.object_hash)
+            wd.vote(darksilkd, VoteSignals.delete, VoteOutcomes.yes)
+
+    printdbg("leaving watchdog_check")
+
+def attempt_superblock_creation(darksilkd):
+    import darksilklib
+
+    if not darksilkd.is_stormnode():
+        print("We are not a Stormnode... can't submit superblocks!")
+        return
+
+    # query votes for this specific ebh... if we have voted for this specific
+    # ebh, then it's voted on. since we track votes this is all done using joins
+    # against the votes table
+    #
+    # has this stormnode voted on *any* superblocks at the given event_block_height?
+    # have we voted FUNDING=YES for a superblock for this specific event_block_height?
+
+    event_block_height = darksilkd.next_superblock_height()
+
+    if Superblock.is_voted_funding(event_block_height):
+        # printdbg("ALREADY VOTED! 'til next time!")
+
+        # vote down any new SBs because we've already chosen a winner
+        for sb in Superblock.at_height(event_block_height):
+            if not sb.voted_on(signal=VoteSignals.funding):
+                sb.vote(darksilkd, VoteSignals.funding, VoteOutcomes.no)
+
+        # now return, we're done
+        return
+
+    if not darksilkd.is_govobj_maturity_phase():
+        printdbg("Not in maturity phase yet -- will not attempt Superblock")
+        return
+
+    proposals = Proposal.approved_and_ranked(darksilkd)
+    sb = darksilklib.create_superblock(darksilkd, proposals, event_block_height)
+    if not sb:
+        printdbg("No superblock created, sorry. Returning.")
+        return
+
+    # find the deterministic SB w/highest object_hash in the DB
+    dbrec = Superblock.find_highest_deterministic(sb.hex_hash())
+    if dbrec:
+        dbrec.vote(darksilkd, VoteSignals.funding, VoteOutcomes.yes)
+
+        # any other blocks which match the sb_hash are duplicates, delete them
+        for sb in Superblock.select().where(Superblock.sb_hash == sb.hex_hash()):
+            if not sb.voted_on(signal=VoteSignals.funding):
+                sb.vote(darksilkd, VoteSignals.delete, VoteOutcomes.yes)
+
+        printdbg("VOTED FUNDING FOR SB! We're done here 'til next superblock cycle.")
+        return
+    else:
+        printdbg("The correct superblock wasn't found on the network...")
+
+    # if we are the elected stormnode...
+    if (darksilkd.we_are_the_winner()):
+        printdbg("we are the winner! Submit SB to network")
+        sb.submit(darksilkd)
+
+def check_object_validity(darksilkd):
+    # vote (in)valid objects
+    for gov_class in [Proposal, Superblock]:
+        for obj in gov_class.select():
+            obj.vote_validity(darksilkd)
+
+def is_darksilkd_port_open(darksilkd):
+    # test socket open before beginning, display instructive message to SN
+    # operators if it's not
+    port_open = False
+    try:
+        info = darksilkd.rpc_command('getinfo')
+        port_open = True
+    except (socket.error, JSONRPCException) as e:
+        print("%s" % e)
+
+    return port_open
+
+def main():
+    darksilkd = DarkSilkDaemon.from_darksilk_conf(config.darksilk_conf)
+
+    # check darksilkd connectivity
+    if not is_darksilkd_port_open(darksilkd):
+        print("Cannot connect to darksilkd. Please ensure darksilkd is running and the JSONRPC port is open to Sentinel.")
+        sys.exit(2)
+
+    # check darksilkd sync
+    if not darksilkd.is_synced():
+        print("darksilkd not synced with network! Awaiting full sync before running Sentinel.")
+        sys.exit(2)
+
+    # ========================================================================
+    # general flow:
+    # ========================================================================
+    #
+    # load "gobject list" rpc command data & create new objects in local MySQL DB
+    perform_darksilkd_object_sync(darksilkd)
+
+    # delete old watchdog objects, create a new if necessary
+    watchdog_check(darksilkd)
+
+    # auto vote network objects as valid/invalid
+    check_object_validity(darksilkd)
+
+    # create a Superblock if necessary
+    attempt_superblock_creation(darksilkd)
+
+def signal_handler(signum, frame):
+    print("Got a signal [%d], cleaning up..." % (signum))
+    Transient.delete('SENTINEL_RUNNING')
+    sys.exit(1)
+
+if __name__ == '__main__':
+    signal.signal(signal.SIGINT, signal_handler)
+
+    # ensure another instance of Sentinel is not currently running
+    mutex_key = 'SENTINEL_RUNNING'
+    # assume that all processes expire after 'timeout_seconds' seconds
+    timeout_seconds = 90
+
+    is_running = Transient.get(mutex_key)
+    if is_running:
+        printdbg("An instance of Sentinel is already running -- aborting.")
+        sys.exit(2)
+    else:
+        Transient.set(mutex_key, misc.now(), timeout_seconds)
+
+    # locked to this instance -- perform main logic here
+    main()
+
+    Transient.delete(mutex_key)

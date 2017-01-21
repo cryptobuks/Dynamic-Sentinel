@@ -1,95 +1,41 @@
-#!/usr/bin/env python
-
-import json
-import calendar
 import time
+from datetime import datetime
 import re
-import datetime
-import random
-from time import sleep
+import sys, os
 
-"""
-    take any non-meta attributes and serialize them into a register
-"""
+def is_numeric(strin):
+    import decimal
 
-sentinel_options = []
+    # Decimal allows spaces in input, but we don't
+    if strin.strip() != strin:
+        return False
+    try:
+        value = decimal.Decimal(strin)
+    except decimal.InvalidOperation as e:
+        return False
 
-def first_day_of_next_month():
-    d = datetime.datetime.now() #todays date
-    d + datetime.timedelta(days=29) #add 29 days
-    return date(d.year, d.month, 1) #get first of month
+    return True
 
-def clean_hash(s):
-    m = re.match('^([a-f0-9]+)$', s)
-    if m: return m.group(1)
-    return None
+def printdbg(str):
+    ts = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(now()))
+    logstr = "{} {}".format(ts, str)
+    if os.environ.get('SENTINEL_DEBUG', None):
+        print(logstr)
 
 def is_hash(s):
-    m = re.match('^([a-f0-9]+)$', s)
+    m = re.match('^[a-f0-9]{64}$', s)
     if m: return True
     return False
 
-def normalize(s):
-    # args passes in enclosing quotations 
-    return s.replace("'", "").replace("\"", "")
+def now():
+    return int(time.time())
 
-def get_epoch():
-    return calendar.timegm(time.gmtime())
+def epoch2str(epoch):
+    return datetime.utcfromtimestamp(epoch).strftime("%Y-%m-%d %H:%M:%S")
 
-def add_sentinel_option(param):
-    sentinel_options.append(param)
+class Bunch(object):
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
 
-def convert_govobj_name_to_type(govname):
-    if govname == "user": return 2
-
-    return -1
-
-def convert_govobj_type_to_name(govtype):
-    if govtype == 2: return "user"
-
-    return "error"
-
-## check parameters from the user
-
-def is_valid_address(args):
-    try:
-        if args.address1 or not args.address2 or not args.city or not args.state or not args.country: 
-            return False
-    except:
-        pass
-    return True
-
-def completer(text, state):
-    options = [i for i in commands if i.startswith(text)]
-    options.extend(sentinel_options)
-
-    if state < len(options):
-        return options[state]
-    else:
-        return None
-
-def startup():
-    # python startup file 
-    import readline 
-    import rlcompleter 
-    import atexit 
-    import os 
-
-    # tab completion 
-    readline.parse_and_bind('tab: complete') 
-    readline.set_completer(completer)
-
-    # do not use - as delimiter
-    old_delims = readline.get_completer_delims() # <-
-    readline.set_completer_delims(old_delims.replace('-', '')) # <-
-
-    # history file 
-    histfile = os.path.join(os.environ['HOME'], '.pythonhistory') 
-    try: 
-        readline.read_history_file(histfile) 
-    except IOError: 
-        pass 
-    atexit.register(readline.write_history_file, histfile) 
-    del os, histfile, readline, rlcompleter
-
-    import readline
+    def get(self, name):
+        return self.__dict__.get(name, None)
