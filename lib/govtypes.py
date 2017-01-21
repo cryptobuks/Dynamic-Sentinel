@@ -1,5 +1,5 @@
 
-# Name the types of governance objects here, dash is agnostict
+# Name the types of governance objects here, darksilk is agnostict
 
 proposal = 1
 trigger = 2

@@ -1,6 +1,6 @@
 ############## Sentinel Project Commands #####################
 #
-# Sentinel is an interface for interacting with Dash governance
+# Sentinel is an interface for interacting with DarkSilk governance
 #
 # ATTENTION: 
 # **** change these each project, so that the default is correct usually ****

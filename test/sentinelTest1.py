@@ -24,7 +24,7 @@ import datetime
 
 from governance import GovernanceObject, GovernanceObjectMananger, Setting, Event
 from classes import Proposal, Superblock
-from dashd import CTransaction, rpc_command
+from darksilkd import CTransaction, rpc_command
 
 PAYMENT_ADDRESS1 = "yNaE8Le2MVwk1zpwuEKveTMCEQHVxdcfCS"
 PAYMENT_AMOUNT1 = "100"
@@ -32,7 +32,7 @@ PAYMENT_AMOUNT1 = "100"
 PAYMENT_ADDRESS2 = "'ydE7B1A7htNwSTvvER6xBdgpKZqNDbbEhPydE7B1A7htNwSTvvER6xBdgpKZqNDbbEhP'"
 PAYMENT_AMOUNT2 = "23"
 
-DESCRIPTION_URL = "'www.dashwhale.org/p/sb-test'"
+DESCRIPTION_URL = "'www.silknetwork.org'"
 
 START_DATE = "2016-08-01"
 END_DATE = "2017-01-01"
@@ -108,7 +108,7 @@ def do_test():
     sbObj.add_subclass("trigger", c)
     sbObj.save()
 
-    # CREATE EVENT TO TALK TO DASHD / PREPARE / SUBMIT OBJECT
+    # CREATE EVENT TO TALK TO DARKSILKD / PREPARE / SUBMIT OBJECT
 
     event = Event()
     event.create_new(last_id)
@@ -162,7 +162,7 @@ def do_test():
     newObj.add_subclass("proposal", c)
     newObj.save()
 
-    # CREATE EVENT TO TALK TO DASHD / PREPARE / SUBMIT OBJECT
+    # CREATE EVENT TO TALK TO DARKSILKD / PREPARE / SUBMIT OBJECT
                 
     event = Event()
     event.create_new(last_id)

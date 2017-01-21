@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Dashd interface
+darkSilkd interface
 ----
 
 """
@@ -13,11 +13,11 @@ import json
 import sys
 
 def rpc_command(params):
-    dashcmd = config.dashd_path + " --datadir=" + config.datadir
+    darksilkcmd = config.darksilkd_path + " --datadir=" + config.datadir
     
-    #print "'%s' '%s'" % (dashcmd, params)
+    #print "'%s' '%s'" % (darksilkcmd, params)
 
-    proc = subprocess.Popen(dashcmd + " " + params, shell=True, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    proc = subprocess.Popen(darksilkcmd + " " + params, shell=True, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = ""
     while (True):
         # Read line from stdout, break if EOF reached, append line to output
@@ -51,7 +51,7 @@ class CTransaction():
         except:
             print "Unexpected error:", sys.exc_info()[0]
             print 
-            print "dashd result:", result
+            print "darksilkd result:", result
             print
             return False
 

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 """
-    Setup your dash environment here and copy this file to config.py
+    Setup your darksilk environment here and copy this file to config.py
 """
 
-dashd_path = "/Users/evan/Desktop/dash/src/dash-cli"
-datadir = "/Users/evan/.dash"
-masternodes = ["masternode_01", "masternode_02"]
+darksilkd_path = "/Users/spencerlievens/Desktop/darksilk/src/darksilk-cli"
+datadir = "/Users/spencerlievens/.darksilk"
+stormnodes = ["stormnode_01", "stormnode_02"]
 
 hostname="hostname"
 username="username"

@@ -13,7 +13,7 @@ from governance  import GovernanceObject, Event
 import libmysql 
 import config 
 import misc 
-import dashd
+import darksilkd
 import random
 import govtypes
 
@@ -85,12 +85,12 @@ def prepare_events():
         govobj = GovernanceObject()
         govobj.load(event.get_id())
 
-        print "# PREPARING EVENTS FOR DASH NETWORK"
+        print "# PREPARING EVENTS FOR DARKSILK NETWORK"
         print
         print " -- cmd : ", govobj.get_prepare_command()
         print
 
-        result = dashd.rpc_command(govobj.get_prepare_command())
+        result = darksilkd.rpc_command(govobj.get_prepare_command())
         print " -- executing event ... getting fee_tx hash"
 
         # todo: what should it do incase of error?
@@ -130,7 +130,7 @@ def submit_events():
         govobj.load(event.get_id())
         hash = govobj.get_field("object_fee_tx")
 
-        print "# SUBMIT PREPARED EVENTS FOR DASH NETWORK"
+        print "# SUBMIT PREPARED EVENTS FOR DARKSILK NETWORK"
 
         print
         print " -- cmd : ", govobj.get_submit_command()
@@ -138,7 +138,7 @@ def submit_events():
         print " -- executing event ... getting fee_tx hash"
 
         if misc.is_hash(hash):
-            tx = dashd.CTransaction()
+            tx = darksilkd.CTransaction()
             if tx.load(hash):
                 print " -- confirmations: ", tx.get_confirmations()
                 
@@ -146,7 +146,7 @@ def submit_events():
                     event.set_submitted()   
                     print " -- executing event ... getting fee_tx hash"
 
-                    result = dashd.rpc_command(govobj.get_submit_command())
+                    result = darksilkd.rpc_command(govobj.get_submit_command())
                     if misc.is_hash(result):
                         print " -- got result", result
 
@@ -212,7 +212,7 @@ def process_budget():
     #         proposal p,
     #         action a,
     #         action v,
-    #         masternode m
+    #         stormnode s
     #     ON
     #         g.id = p.governance_object_id and
     #         a.id = g.action_funding_id and 
@@ -231,10 +231,10 @@ def process_budget():
     # cumulative = 0
     # allowed = 0
 
-    # # query for allowed amount from dashd
+    # # query for allowed amount from darksilkd
 
     # #
-    # #    BUILD THE ITEMS FOR THE DASHD GOVERNANCE OBJECT , WE NEED:
+    # #    BUILD THE ITEMS FOR THE DARKSILKD GOVERNANCE OBJECT , WE NEED:
     # #       - A LIST OF ADDRESSES
     # #       - A LIST OF AMOUNTS
     # #       - THEN WE'LL COMPILE TWO STRINGS DELIMITED ADDRESSES AND AMOUNTS
@@ -319,7 +319,7 @@ def process_budget():
     #         newObj.add_subclass("trigger", c)
     #         newObj.save()
 
-    #         # CREATE EVENT TO TALK TO DASHD / PREPARE / SUBMIT OBJECT
+    #         # CREATE EVENT TO TALK TO DARKSILKD / PREPARE / SUBMIT OBJECT
 
     #         event = Event()
     #         event.create_new(last_id)

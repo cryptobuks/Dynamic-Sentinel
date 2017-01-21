@@ -25,7 +25,7 @@ class Proposal:
 
     """
         proposal --create --proposal_name="beer-reimbursement" 
-        --description_url="www.dashwhale.org/p/beer-reimbursement" 
+        --description_url="www.silknetwork.org/p/beer-reimbursement" 
         --start_date="2017/1/1" 
         --end_date="2017/6/1" 
         --payment_address="Xy2LKJJdeQxeyHrn4tGDQB8bjhvFEdaUv7"'

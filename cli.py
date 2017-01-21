@@ -19,7 +19,7 @@ from datetime import datetime, date, time
 
 from governance import GovernanceObject, GovernanceObjectMananger, Setting, Event
 from classes import Proposal, Superblock
-from dashd import CTransaction
+from darksilkd import CTransaction
 
 # Enable only for testing:
 crontab.CONFIRMATIONS_REQUIRED = 1
@@ -39,10 +39,10 @@ commands = {}
      - this is an exact copy of our existing functionality, just reimplemented in python using sentinel
 
     old commands: 
-        mnbudget prepare beer-reimbursement2 www.dashwhale.org/p/beer-reimbursement2 1 481864 XfoGXXFJtobHvjwfszWnbMNZCBAHJWeN6G 50
-        mnbudget submit beer-reimbursement2 www.dashwhale.org/p/beer-reimbursement2 1 481864 XfoGXXFJtobHvjwfszWnbMNZCBAHJWeN6G 50 REPLACE_WITH_COLLATERAL_HASH
+        mnbudget prepare beer-reimbursement2 www.silknetwork.org/p/beer-reimbursement2 1 481864 XfoGXXFJtobHvjwfszWnbMNZCBAHJWeN6G 50
+        mnbudget submit beer-reimbursement2 www.silknetwork.org/p/beer-reimbursement2 1 481864 XfoGXXFJtobHvjwfszWnbMNZCBAHJWeN6G 50 REPLACE_WITH_COLLATERAL_HASH
 
-    1. proposal --create --proposal_name="beer-reimbursement" --description_url="www.dashwhale.org/p/beer-reimbursement" --start-date="2017/1/1" --end-date="2017/6/1"
+    1. proposal --create --proposal_name="beer-reimbursement" --description_url="www.silknetwork.org/p/beer-reimbursement" --start-date="2017/1/1" --end-date="2017/6/1"
     2. cron process (will automatically submit the proposal to the network)
 
 """
@@ -92,9 +92,9 @@ class SentinelShell(cmd.Cmd):
 
     """
     def do_proposal(self, arg):
-        'proposal --create --proposal_name="sb-test" --description_url="www.dashwhale.org/p/sb-test" --start_date="2016/8/1" --end_date="2017/1/1" --payment_address="ydE7B1A7htNwSTvvER6xBdgpKZqNDbbEhPydE7B1A7htNwSTvvER6xBdgpKZqNDbbEhP" --payment_amount="23"'
+        'proposal --create --proposal_name="sb-test" --description_url="www.silknetwork.org" --start_date="2016/8/1" --end_date="2017/1/1" --payment_address="ydE7B1A7htNwSTvvER6xBdgpKZqNDbbEhPydE7B1A7htNwSTvvER6xBdgpKZqNDbbEhP" --payment_amount="23"'
 
-        parser = argparse.ArgumentParser(description='Create a dash proposal')
+        parser = argparse.ArgumentParser(description='Create a DarkSilk proposal')
 
         # desired action
         parser.add_argument('-c', '--create', help="create", action='store_true')
@@ -200,7 +200,7 @@ class SentinelShell(cmd.Cmd):
                 newObj.add_subclass("proposal", c)
                 newObj.save()
 
-                # CREATE EVENT TO TALK TO DASHD / PREPARE / SUBMIT OBJECT
+                # CREATE EVENT TO TALK TO DARKSILKD / PREPARE / SUBMIT OBJECT
                 
                 event = Event()
                 event.create_new(last_id)
@@ -231,7 +231,7 @@ class SentinelShell(cmd.Cmd):
         'superblock --create --event_block_height="28224" --payments="yLipDagwb1gM15RaUq3hpcaTxzDsFsSy9a=100"'
         'superblock --create --event_date="2017/1/1" --payments="Addr1=amount,Addr2=amount,Addr3=amount"'
 
-        parser = argparse.ArgumentParser(description='Create a dash proposal')
+        parser = argparse.ArgumentParser(description='Create a DarkSilk proposal')
 
         # desired action
         parser.add_argument('-c', '--create', help="create", action='store_true')
@@ -319,7 +319,7 @@ class SentinelShell(cmd.Cmd):
                 newObj.add_subclass("trigger", c)
                 newObj.save()
 
-                # CREATE EVENT TO TALK TO DASHD / PREPARE / SUBMIT OBJECT
+                # CREATE EVENT TO TALK TO DARKILKD / PREPARE / SUBMIT OBJECT
 
                 event = Event()
                 event.create_new(last_id)
@@ -423,10 +423,10 @@ class SentinelShell(cmd.Cmd):
 
     # ----- (internal) vote on something -----
     def do_vote(self, arg):
-        'Command action on the dash network'
+        'Command action on the DarkSilk network'
         ' vote --times=22 --type=funding --outcome=yes [--hash=governance-hash --name=obj-name]'
 
-        parser = argparse.ArgumentParser(description='Vote on governance objects and signal what dash should do with them.')
+        parser = argparse.ArgumentParser(description='Vote on governance objects and signal what DarkSilk should do with them.')
 
         #voting
         parser.add_argument('-t', '--times')
@@ -486,7 +486,7 @@ if __name__ == '__main__':
     Test Flow (to be moved into unit tests):
 
     1.)  create an example proposal
-        proposal --create --proposal_name="beer-reimbursement" --description_url="www.dashwhale.org/p/beer-reimbursement" --start_date="2017/1/1" --end_date="2017/6/1"
+        proposal --create --proposal_name="beer-reimbursement" --description_url="www.silknetwork.org/p/beer-reimbursement" --start_date="2017/1/1" --end_date="2017/6/1"
 
     2.)  vote on the funding proposal
          vote --times=22 --type=funding --outcome=yes [--hash=governance-hash --name=obj-name]

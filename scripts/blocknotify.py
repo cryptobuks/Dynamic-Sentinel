@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import json
-import dashd
+import darksilkd
 
 import sys
 sys.path.append("lib")
@@ -13,7 +13,7 @@ from governance  import GovernanceObject
 
 """
 
-difflist = json.loads(dashd.cmd("governance diff"))
+difflist = json.loads(darksilkd.cmd("governance diff"))
 for item in difflist:
 	obj = GovernanceObject(item)
 	obj.save()

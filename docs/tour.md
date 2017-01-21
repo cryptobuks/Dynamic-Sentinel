@@ -1,4 +1,4 @@
-# Dash Project Management Tour 
+# DarkSilk Project Management Tour 
 
 <pre>
 The system can store many types of project management objects, such as projects (software and non-software). Users can be employees, volunteers or managers. Projects can also carry reports, milestones and bounties. Combined we can arrange projects however we see fix.
@@ -6,7 +6,7 @@ The system can store many types of project management objects, such as projects 
 ![](img/object-types.png)
 
 <pre>
-Control of the process all goes back to masternode operators and projects. Support for projects and project managers are signaled by counting votes. 
+Control of the process all goes back to stormnode operators and projects. Support for projects and project managers are signaled by counting votes. 
 </pre>
 ![](img/project-manangement-flow.png)
 

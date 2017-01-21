@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import dashd
+import darksilkd
 import json
 import cPickle
 
