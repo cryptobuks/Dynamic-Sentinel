@@ -28,7 +28,7 @@ class GovernanceClass(object):
         return self.go.voted_on(**kwargs)
 
     def vote_validity(self, darksilkd):
-        if self.is_valid(darksilkd):
+        if self.is_valid():
             printdbg("Voting valid! %s: %d" % (self.__class__.__name__, self.id))
             self.vote(darksilkd, models.VoteSignals.valid, models.VoteOutcomes.yes)
         else:
@@ -84,7 +84,7 @@ class GovernanceClass(object):
             object_hash = darksilkd.rpc_command(*self.get_submit_command())
             printdbg("Submitted: [%s]" % object_hash)
         except JSONRPCException as e:
-            print("Got error on submit: %s" % e.message)
+            print("Unable to submit: %s" % e.message)
 
     def serialise(self):
         import inflection

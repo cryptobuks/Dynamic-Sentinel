@@ -15,7 +15,7 @@ from decimal import Decimal
 darksilkd = DarkSilkDaemon.from_darksilk_conf(config.darksilk_conf)
 import misc
 # ==============================================================================
-# do shit here
+# do stuff here
 
 pr = Proposal(
     name='proposal7',

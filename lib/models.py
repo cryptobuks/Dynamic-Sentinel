@@ -16,6 +16,12 @@ from misc import printdbg
 import config
 from bitcoinrpc.authproxy import JSONRPCException
 
+try:
+    import urllib.parse as urlparse
+except ImportError:
+    import urlparse
+          
+
 # our mixin
 from governance_class import GovernanceClass
 
@@ -72,12 +78,15 @@ class GovernanceObject(BaseModel):
         golist = darksilkd.rpc_command('gobject', 'list')
 
         # objects which are removed from the network should be removed from the DB
-        for purged in self.purged_network_objects(list(golist.keys())):
-            # SOMEDAY: possible archive step here
-            purged.delete_instance(recursive=True, delete_nullable=True)
+        try:
+            for purged in self.purged_network_objects(list(golist.keys())):
+                # SOMEDAY: possible archive step here
+                purged.delete_instance(recursive=True, delete_nullable=True)
 
-        for item in golist.values():
-            (go, subobj) = self.import_gobject_from_darksilkd(darksilkd, item)
+            for item in golist.values():
+                (go, subobj) = self.import_gobject_from_darksilkd(darksilkd, item)
+        except (peewee.InternalError, peewee.OperationalError, peewee.ProgrammingError) as e:
+            printdbg("Got an error upon import: %s" % e)
 
     @classmethod
     def purged_network_objects(self, network_object_hashes):
@@ -251,7 +260,7 @@ class Proposal(GovernanceClass, BaseModel):
     class Meta:
         db_table = 'proposals'
 
-    def is_valid(self, darksilkd):
+    def is_valid(self):
         import darksilklib
 
         printdbg("In Proposal#is_valid, for Proposal: %s" % self.__dict__)
@@ -272,12 +281,6 @@ class Proposal(GovernanceClass, BaseModel):
                 printdbg("\tProposal end_epoch [%s] <= start_epoch [%s] , returning False" % (self.end_epoch, self.start_epoch))
                 return False
 
-            # budget check
-            max_budget = darksilkd.next_superblock_max_budget()
-            if (max_budget and (self.payment_amount > max_budget)):
-                printdbg("\tProposal amount [%s] is bigger than max_budget [%s], returning False" % (self.payment_amount, max_budget))
-                return False
-
             # amount can't be negative or 0
             if (self.payment_amount <= 0):
                 printdbg("\tProposal amount [%s] is negative or zero, returning False" % self.payment_amount)
@@ -293,8 +296,14 @@ class Proposal(GovernanceClass, BaseModel):
                 printdbg("\tProposal URL [%s] too short, returning False" % self.url)
                 return False
 
+            try:
+                parsed = urlparse.urlparse(self.url)
+            except Exception as e:
+                printdbg("\tUnable to parse Proposal URL, marking invalid: %s" % e)
+                return False
+
         except Exception as e:
-            print("Got error on Proposal#is_valid, marking invalid: %s" % e.message)
+            printdbg("Unable to validate in Proposal#is_valid, marking invalid: %s" % e.message)
             return False
 
         printdbg("Leaving Proposal#is_valid, Valid = True")
@@ -341,7 +350,7 @@ class Proposal(GovernanceClass, BaseModel):
         ranked = []
         for proposal in query:
             proposal.max_budget = next_superblock_max_budget
-            if proposal.is_valid(darksilkd):
+            if proposal.is_valid():
                 ranked.append(proposal)
 
         return ranked
@@ -373,7 +382,7 @@ class Proposal(GovernanceClass, BaseModel):
             print(manual_submit)
 
         except JSONRPCException as e:
-            print("Got error on prepare: %s" % e.message)
+            print("Unable to prepare: %s" % e.message)
 
 class Superblock(BaseModel, GovernanceClass):
     governance_object = ForeignKeyField(GovernanceObject, related_name = 'superblocks', on_delete='CASCADE', on_update='CASCADE')
@@ -390,7 +399,7 @@ class Superblock(BaseModel, GovernanceClass):
     class Meta:
         db_table = 'superblocks'
 
-    def is_valid(self, darksilkd):
+    def is_valid(self):
         import darksilklib
         import decimal
 
@@ -692,10 +701,10 @@ def check_db_sane():
     for model in db_models():
         if not getattr(model, 'table_exists')():
             missing_table_models.append(model)
-            print("[warning]: table for %s (%s) doesn't exist in DB." % (model, model._meta.db_table))
+            printdbg("[warning]: table for %s (%s) doesn't exist in DB." % (model, model._meta.db_table))
 
     if missing_table_models:
-        print("[warning]: Missing database tables. Auto-creating tables.")
+        printdbg("[warning]: Missing database tables. Auto-creating tables.")
         try:
             db.create_tables(missing_table_models, safe=True)
         except (peewee.InternalError, peewee.OperationalError, peewee.ProgrammingError) as e:
@@ -715,7 +724,7 @@ def check_db_schema_version():
     printdbg("[info]: SCHEMA_VERSION (code) = [%s]" % SCHEMA_VERSION)
     printdbg("[info]: DB_SCHEMA_VERSION = [%s]" % db_schema_version)
     if (SCHEMA_VERSION != db_schema_version):
-        print("[info]: Schema version mis-match. Syncing tables.")
+        printdbg("[info]: Schema version mis-match. Syncing tables.")
         try:
             existing_table_names = db.get_tables()
             existing_models = [m for m in db_models() if m._meta.db_table in existing_table_names]
