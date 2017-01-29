@@ -60,6 +60,6 @@ def get_db_conn():
 
     return db
 
-+darksilk_conf = get_darksilk_conf()
-+network = get_network()
-+db = get_db_conn()
+darksilk_conf = get_darksilk_conf()
+network = get_network()
+db = get_db_conn()
