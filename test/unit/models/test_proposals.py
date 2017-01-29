@@ -77,7 +77,7 @@ def proposal():
 
 
 def test_proposal_is_valid(proposal):
-    from darksilkd import 
+    from darksilkd import DarkSilkDaemon
     import darksilklib
     darksilkd = DarkSilkDaemon.from_darksilk_conf(config.darksilk_conf)
 
