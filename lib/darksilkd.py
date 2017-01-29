@@ -191,13 +191,13 @@ class DarkSilkDaemon():
         return (winner == my_vin)
 
     @property
-    def MASTERNODE_WATCHDOG_MAX_SECONDS(self):
+    def STORMNODE_WATCHDOG_MAX_SECONDS(self):
         # note: self.govinfo is already memoized
         return self.govinfo['stormnodewatchdogmaxseconds']
 
     @property
     def SENTINEL_WATCHDOG_MAX_SECONDS(self):
-        return (self.MASTERNODE_WATCHDOG_MAX_SECONDS // 2)
+        return (self.STORMNODE_WATCHDOG_MAX_SECONDS // 2)
 
     def estimate_block_time(self, height):
         """
