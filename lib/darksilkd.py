@@ -34,11 +34,7 @@ class DarkSilkDaemon():
         config_text = DarkSilkConfig.slurp_config_file(darksilk_dot_conf)
         creds = DarkSilkConfig.get_rpc_creds(config_text, config.network)
 
-        return self(
-            user     = creds.get('user'),
-            password = creds.get('password'),
-            port     = creds.get('port')
-        )
+        return self(**creds)
 
     def rpc_command(self, *params):
         return self.rpc_connection.__getattr__(params[0])(*params[1:])
