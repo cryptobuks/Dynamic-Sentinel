@@ -1,18 +1,21 @@
 """
     Set up defaults and read sentinel.conf
 """
-import sys
-import os
+
+import sys, os
+sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '.', 'lib'))
 from darksilk_config import DarkSilkConfig
 
 sentinel_cfg = DarkSilkConfig.tokenize('sentinel.conf')
 
+
 def get_darksilk_conf():
     home = os.environ.get('HOME')
 
-    darksilk_conf = os.path.join(home, ".darksilk/darksilk.conf")
+    darksilk_conf = os.path.join(home, ".darksilkcore/darksilk.conf")
     if sys.platform == 'darwin':
-        darksilk_conf = os.path.join(home, "Library/Application Support/DarkSilk/darksilk.conf")
+        darksilk_conf = os.path.join(home, "Library/Application Support/DarkSilkCore/darksilk.conf")
 
     darksilk_conf = sentinel_cfg.get('darksilk_conf', darksilk_conf)
 
@@ -59,6 +62,7 @@ def get_db_conn():
     db = driver(db_name, **db_conn)
 
     return db
+
 
 darksilk_conf = get_darksilk_conf()
 network = get_network()

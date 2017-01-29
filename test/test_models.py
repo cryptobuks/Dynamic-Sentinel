@@ -1,15 +1,17 @@
 import pytest
 import os
 import sys
-sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '../lib')))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
 
 # setup/teardown?
+
 
 # Proposal model
 @pytest.fixture
 def proposal():
     from models import Proposal
     return Proposal()
+
 
 def test_proposal(proposal):
     d = proposal.get_dict()
@@ -33,6 +35,7 @@ def test_proposal(proposal):
 def governance_object():
     from models import GovernanceObject
     return GovernanceObject()
+
 
 def test_governance_object(governance_object):
     d = governance_object._meta.columns

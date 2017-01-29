@@ -4,9 +4,8 @@ import io
 import re
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
-
-
 from misc import printdbg
+
 
 class DarkSilkConfig():
 

@@ -8,6 +8,7 @@ import re
 from misc import printdbg
 import time
 
+
 # mixin for GovObj composed classes like proposal and superblock, etc.
 class GovernanceClass(object):
     only_stormnode_can_submit = False
@@ -69,7 +70,6 @@ class GovernanceClass(object):
             cmd.append(go.object_fee_tx)
 
         return cmd
-
 
     def submit(self, darksilkd):
         # don't attempt to submit a superblock unless a stormnode

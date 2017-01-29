@@ -12,6 +12,7 @@ from stormnode import Stormnode
 from decimal import Decimal
 import time
 
+
 class DarkSilkDaemon():
     def __init__(self, **kwargs):
         host = kwargs.get('host', '127.0.0.1')
@@ -143,7 +144,7 @@ class DarkSilkDaemon():
         import darksilklib
         if not self.gobject_votes.get(object_hash):
             my_vin = self.get_current_stormnode_vin()
-            # if we can't get SN vin from output of `stormnode status`,
+            # if we can't get MN vin from output of `stormnode status`,
             # return an empty list
             if not my_vin:
                 return []
@@ -177,39 +178,39 @@ class DarkSilkDaemon():
 
     def we_are_the_winner(self):
         import darksilklib
-        # find the elected SN vin for superblock creation...
+        # find the elected MN vin for superblock creation...
         current_block_hash = self.current_block_hash()
         sn_list = self.get_stormnodes()
         winner = darksilklib.elect_sn(block_hash=current_block_hash, snlist=sn_list)
         my_vin = self.get_current_stormnode_vin()
 
         # print "current_block_hash: [%s]" % current_block_hash
-        # print "SN election winner: [%s]" % winner
+        # print "MN election winner: [%s]" % winner
         # print "current stormnode VIN: [%s]" % my_vin
 
         return (winner == my_vin)
 
     @property
-    def STORMNODE_WATCHDOG_MAX_SECONDS(self):
+    def MASTERNODE_WATCHDOG_MAX_SECONDS(self):
         # note: self.govinfo is already memoized
         return self.govinfo['stormnodewatchdogmaxseconds']
 
     @property
     def SENTINEL_WATCHDOG_MAX_SECONDS(self):
-        return (self.STORMNODE_WATCHDOG_MAX_SECONDS // 2)
+        return (self.MASTERNODE_WATCHDOG_MAX_SECONDS // 2)
 
     def estimate_block_time(self, height):
         """
         Called by block_height_to_epoch if block height is in the future.
         Call `block_height_to_epoch` instead of this method.
 
-        DO NOT CALL DIRECTLY if you don't want a "Oh no." exception.
+        DO NOT CALL DIRECTLY if you don't want a "Oh Noes." exception.
         """
         current_block_height = self.rpc_command('getblockcount')
         diff = height - current_block_height
 
         if (diff < 0):
-            raise Exception("Oh no.")
+            raise Exception("Oh Noes.")
 
         future_minutes = 2.62 * diff
         future_seconds = 60 * future_minutes

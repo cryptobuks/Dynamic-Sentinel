@@ -1,5 +1,6 @@
-# basically just parse & make it easier to access the SN data from the output of
+# basically just parse & make it easier to access the MN data from the output of
 # "stormnodelist full"
+
 
 class Stormnode():
     def __init__(self, collateral, snstring):

@@ -20,6 +20,7 @@ import signal
 def perform_darksilkd_object_sync(darksilkd):
     GovernanceObject.sync(darksilkd)
 
+
 # delete old watchdog objects, create new when necessary
 def watchdog_check(darksilkd):
     printdbg("in watchdog_check")
@@ -53,6 +54,7 @@ def watchdog_check(darksilkd):
             wd.vote(darksilkd, VoteSignals.delete, VoteOutcomes.yes)
 
     printdbg("leaving watchdog_check")
+
 
 def attempt_superblock_creation(darksilkd):
     import darksilklib
@@ -111,14 +113,16 @@ def attempt_superblock_creation(darksilkd):
         printdbg("we are the winner! Submit SB to network")
         sb.submit(darksilkd)
 
+
 def check_object_validity(darksilkd):
     # vote (in)valid objects
     for gov_class in [Proposal, Superblock]:
         for obj in gov_class.select():
             obj.vote_validity(darksilkd)
 
+
 def is_darksilkd_port_open(darksilkd):
-    # test socket open before beginning, display instructive message to SN
+    # test socket open before beginning, display instructive message to MN
     # operators if it's not
     port_open = False
     try:
@@ -128,6 +132,7 @@ def is_darksilkd_port_open(darksilkd):
         print("%s" % e)
 
     return port_open
+
 
 def main():
     darksilkd = DarkSilkDaemon.from_darksilk_conf(config.darksilk_conf)
@@ -170,10 +175,12 @@ def main():
     # create a Superblock if necessary
     attempt_superblock_creation(darksilkd)
 
+
 def signal_handler(signum, frame):
     print("Got a signal [%d], cleaning up..." % (signum))
     Transient.delete('SENTINEL_RUNNING')
     sys.exit(1)
+
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)

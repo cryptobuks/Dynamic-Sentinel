@@ -16,12 +16,10 @@ import darksilkd
 from misc import printdbg
 import config
 from bitcoinrpc.authproxy import JSONRPCException
-
 try:
     import urllib.parse as urlparse
 except ImportError:
     import urlparse
-          
 
 # our mixin
 from governance_class import GovernanceClass
@@ -31,7 +29,7 @@ db.connect()
 
 
 # TODO: lookup table?
-DARKSILKD_GOVOBJ_TYPES = {
+DASHD_GOVOBJ_TYPES = {
     'proposal': 1,
     'superblock': 2,
     'watchdog': 3,
@@ -48,6 +46,7 @@ SCHEMA_VERSION = '20170111-1'
 
 # === models ===
 
+
 class BaseModel(playhouse.signals.Model):
     class Meta:
         database = db
@@ -55,6 +54,7 @@ class BaseModel(playhouse.signals.Model):
     @classmethod
     def is_database_connected(self):
         return not db.is_closed()
+
 
 class GovernanceObject(BaseModel):
     parent_id = IntegerField(default=0)
@@ -137,7 +137,7 @@ class GovernanceObject(BaseModel):
             printdbg("govobj updated = %d" % count)
         subdikt['governance_object'] = govobj
 
-        # get/create, then sync payment amounts, etc. from darksilkd - darksilkd is the master
+        # get/create, then sync payment amounts, etc. from darksilkd - DarkSilkd is the master
         try:
             subobj, created = subclass.get_or_create(object_hash=object_hash, defaults=subdikt)
         except (peewee.OperationalError, peewee.IntegrityError) as e:
@@ -236,6 +236,7 @@ class GovernanceObject(BaseModel):
         count = query.count()
         return count
 
+
 class Setting(BaseModel):
     name = CharField(default='')
     value = CharField(default='')
@@ -244,6 +245,7 @@ class Setting(BaseModel):
 
     class Meta:
         db_table = 'settings'
+
 
 class Proposal(GovernanceClass, BaseModel):
     governance_object = ForeignKeyField(GovernanceObject, related_name='proposals', on_delete='CASCADE', on_update='CASCADE')
@@ -255,7 +257,7 @@ class Proposal(GovernanceClass, BaseModel):
     payment_amount = DecimalField(max_digits=16, decimal_places=8)
     object_hash = CharField(max_length=64)
 
-    govobj_type = DARKSILKD_GOVOBJ_TYPES['proposal']
+    govobj_type = DASHD_GOVOBJ_TYPES['proposal']
 
     class Meta:
         db_table = 'proposals'
@@ -332,7 +334,9 @@ class Proposal(GovernanceClass, BaseModel):
         return False
 
     @classmethod
-    def approved_and_ranked(self, proposal_quorum, next_superblock_max_budget):
+    def approved_and_ranked(self, darksilkd):
+        proposal_quorum = darksilkd.governance_quorum()
+        next_superblock_max_budget = darksilkd.next_superblock_max_budget()
 
         # return all approved proposals, in order of descending vote count
         #
@@ -382,6 +386,7 @@ class Proposal(GovernanceClass, BaseModel):
         except JSONRPCException as e:
             print("Unable to prepare: %s" % e.message)
 
+
 class Superblock(BaseModel, GovernanceClass):
     governance_object = ForeignKeyField(GovernanceObject, related_name='superblocks', on_delete='CASCADE', on_update='CASCADE')
     event_block_height = IntegerField()
@@ -391,7 +396,7 @@ class Superblock(BaseModel, GovernanceClass):
     sb_hash = CharField()
     object_hash = CharField(max_length=64)
 
-    govobj_type = DARKSILKD_GOVOBJ_TYPES['superblock']
+    govobj_type = DASHD_GOVOBJ_TYPES['superblock']
     only_stormnode_can_submit = True
 
     class Meta:
@@ -504,26 +509,34 @@ class Superblock(BaseModel, GovernanceClass):
             obj = None
         return obj
 
+
 # ok, this is an awkward way to implement these...
 # "hook" into the Superblock model and run this code just before any save()
 from playhouse.signals import pre_save
+
+
 @pre_save(sender=Superblock)
 def on_save_handler(model_class, instance, created):
     instance.sb_hash = instance.hex_hash()
+
 
 class Signal(BaseModel):
     name = CharField(unique=True)
     created_at = DateTimeField(default=datetime.datetime.utcnow())
     updated_at = DateTimeField(default=datetime.datetime.utcnow())
+
     class Meta:
         db_table = 'signals'
+
 
 class Outcome(BaseModel):
     name = CharField(unique=True)
     created_at = DateTimeField(default=datetime.datetime.utcnow())
     updated_at = DateTimeField(default=datetime.datetime.utcnow())
+
     class Meta:
         db_table = 'outcomes'
+
 
 class Vote(BaseModel):
     governance_object = ForeignKeyField(GovernanceObject, related_name='votes', on_delete='CASCADE', on_update='CASCADE')
@@ -537,12 +550,13 @@ class Vote(BaseModel):
     class Meta:
         db_table = 'votes'
 
+
 class Watchdog(BaseModel, GovernanceClass):
     governance_object = ForeignKeyField(GovernanceObject, related_name='watchdogs')
     created_at = IntegerField()
     object_hash = CharField(max_length=64)
 
-    govobj_type = DARKSILKD_GOVOBJ_TYPES['watchdog']
+    govobj_type = DASHD_GOVOBJ_TYPES['watchdog']
     only_stormnode_can_submit = True
 
     @classmethod
@@ -579,6 +593,7 @@ class Watchdog(BaseModel, GovernanceClass):
 
     class Meta:
         db_table = 'watchdogs'
+
 
 class Transient(object):
 
@@ -661,6 +676,7 @@ class Transient(object):
 
 # === /models ===
 
+
 def load_db_seeds():
     rows_created = 0
 
@@ -676,6 +692,7 @@ def load_db_seeds():
 
     return rows_created
 
+
 def db_models():
     """ Return a list of Sentinel DB models. """
     models = [
@@ -689,6 +706,7 @@ def db_models():
         Watchdog
     ]
     return models
+
 
 def check_db_sane():
     """ Ensure DB tables exist, create them if they don't. """
@@ -709,6 +727,7 @@ def check_db_sane():
             print("[error] Could not create tables: %s" % e)
 
     update_schema_version()
+
 
 def check_db_schema_version():
     """ Ensure DB schema is correct version. Drop tables if not. """
@@ -732,11 +751,13 @@ def check_db_schema_version():
         except (peewee.InternalError, peewee.OperationalError, peewee.ProgrammingError) as e:
             print("[error] Could not drop tables: %s" % e)
 
+
 def update_schema_version():
     schema_version_setting, created = Setting.get_or_create(name='DB_SCHEMA_VERSION', defaults={'value': SCHEMA_VERSION})
     if (schema_version_setting.value != SCHEMA_VERSION):
         schema_version_setting.save()
     return
+
 
 # sanity checks...
 check_db_sane()     # ensure tables exist
@@ -745,4 +766,3 @@ load_db_seeds()     # ensure seed data loaded
 # convenience accessors
 VoteSignals = misc.Bunch(**{sig.name: sig for sig in Signal.select()})
 VoteOutcomes = misc.Bunch(**{out.name: out for out in Outcome.select()})
-View

@@ -11,6 +11,7 @@ import binascii
 from misc import printdbg, epoch2str
 import time
 
+
 def is_valid_darksilk_address(address, network='mainnet'):
     # Only public key addresses are allowed
     # A valid address is a RIPEMD-160 hash which contains 20 bytes
@@ -39,15 +40,17 @@ def is_valid_darksilk_address(address, network='mainnet'):
 
     return True
 
+
 def hashit(data):
     return int(hashlib.sha256(data.encode('utf-8')).hexdigest(), 16)
+
 
 # returns the stormnode VIN of the elected winner
 def elect_sn(**kwargs):
     current_block_hash = kwargs['block_hash']
     sn_list = kwargs['snlist']
 
-    # filter only enabled SNs
+    # filter only enabled MNs
     enabled = [sn for sn in sn_list if sn.status == 'ENABLED']
 
     block_hash_hash = hashit(current_block_hash)
@@ -82,7 +85,8 @@ def parse_stormnode_status_vin(status_vin_string):
 
     return vin
 
-def create_superblock(proposals, event_block_height, budget_max, sb_epoch_time):
+
+def create_superblock(darksilkd, proposals, event_block_height):
     from models import Superblock, GovernanceObject, Proposal
 
     # don't create an empty superblock
@@ -91,6 +95,9 @@ def create_superblock(proposals, event_block_height, budget_max, sb_epoch_time):
         return None
 
     budget_allocated = Decimal(0)
+    budget_max = darksilkd.get_superblock_budget_allocation(event_block_height)
+
+    sb_epoch_time = darksilkd.block_height_to_epoch(event_block_height)
     fudge = 60 * 60 * 2  # fudge-factor to allow for slighly incorrect estimates
 
     payments = []
@@ -167,9 +174,10 @@ def create_superblock(proposals, event_block_height, budget_max, sb_epoch_time):
 
     return sb
 
+
 # shims 'til we can fix the darksilkd side
 def SHIM_serialise_for_darksilkd(sentinel_hex):
-    from models import DARKSILKD_GOVOBJ_TYPES
+    from models import DASHD_GOVOBJ_TYPES
     # unpack
     obj = deserialise(sentinel_hex)
 
@@ -177,7 +185,7 @@ def SHIM_serialise_for_darksilkd(sentinel_hex):
     govtype = obj[0]
 
     # add 'type' attribute
-    obj[1]['type'] = DARKSILKD_GOVOBJ_TYPES[govtype]
+    obj[1]['type'] = DASHD_GOVOBJ_TYPES[govtype]
 
     # superblock => "trigger" in darksilkd
     if govtype == 'superblock':
@@ -190,9 +198,10 @@ def SHIM_serialise_for_darksilkd(sentinel_hex):
     darksilkd_hex = serialise(obj)
     return darksilkd_hex
 
+
 # shims 'til we can fix the darksilkd side
 def SHIM_deserialise_from_darksilkd(darksilkd_hex):
-    from models import DARKSILKD_GOVOBJ_TYPES
+    from models import DASHD_GOVOBJ_TYPES
 
     # unpack
     obj = deserialise(darksilkd_hex)
@@ -216,16 +225,19 @@ def SHIM_deserialise_from_darksilkd(darksilkd_hex):
     sentinel_hex = serialise(obj)
     return sentinel_hex
 
+
 # convenience
 def deserialise(hexdata):
     json = binascii.unhexlify(hexdata)
     obj = simplejson.loads(json, use_decimal=True)
     return obj
 
+
 def serialise(dikt):
     json = simplejson.dumps(dikt, sort_keys=True, use_decimal=True)
     hexdata = binascii.hexlify(json.encode('utf-8')).decode('utf-8')
     return hexdata
+
 
 def did_we_vote(output):
     from bitcoinrpc.authproxy import JSONRPCException
@@ -262,6 +274,7 @@ def did_we_vote(output):
         voted = False
 
     return voted
+
 
 def parse_raw_votes(raw_votes):
     votes = []

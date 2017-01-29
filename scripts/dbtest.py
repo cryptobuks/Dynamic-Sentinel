@@ -4,7 +4,8 @@ from pprint import pprint
 import re
 import sys
 import os
-sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '../lib')))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import config
 from models import Superblock, Proposal, GovernanceObject, Setting, Signal, Vote, Outcome, Watchdog
 from models import VoteSignals, VoteOutcomes
@@ -19,7 +20,7 @@ import misc
 
 pr = Proposal(
     name='proposal7',
-    url='https://silknetwork.com/proposal7',
+    url='https://darksilkcentral.com/proposal7',
     payment_address='yTC62huR4YQEPn9AJHjnQxxreHSbgAoatV',
     payment_amount=39.23,
     start_epoch=1483250400,
@@ -55,9 +56,8 @@ if (bh_epoch < window_start or bh_epoch > window_end):
 else:
     print("Within window, we're good!")
 
-
 # pdb.set_trace()
-#darksilkd.get_object_list()
+# darksilkd.get_object_list()
 # ==============================================================================
 # pdb.set_trace()
 1
