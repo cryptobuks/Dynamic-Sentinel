@@ -18,12 +18,15 @@ class DarkSilkDaemon():
         password = kwargs.get('password')
         port = kwargs.get('port')
 
-        creds = (user, password, host, port)
-        self.rpc_connection = AuthServiceProxy("http://{0}:{1}@{2}:{3}".format(*creds))
+        self.creds = (user, password, host, port)
 
         # memoize calls to some darksilkd methods
         self.governance_info = None
         self.gobject_votes = {}
+
+    @property
+    def rpc_connection(self):
+        return AuthServiceProxy("http://{0}:{1}@{2}:{3}".format(*self.creds))
 
     @classmethod
     def from_darksilk_conf(self, darksilk_dot_conf):
