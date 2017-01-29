@@ -142,6 +142,11 @@ def main():
         print("darksilkd not synced with network! Awaiting full sync before running Sentinel.")
         sys.exit(2)
 
+    # ensure valid stormnode
+    if not darksilkd.is_stormnode():
+        print("Invalid Stormnode Status, cannot continue.")
+        return
+
     # register a handler if SENTINEL_DEBUG is set
     if os.environ.get('SENTINEL_DEBUG', None):
         import logging
