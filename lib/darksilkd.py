@@ -144,7 +144,7 @@ class DarkSilkDaemon():
         import darksilklib
         if not self.gobject_votes.get(object_hash):
             my_vin = self.get_current_stormnode_vin()
-            # if we can't get MN vin from output of `stormnode status`,
+            # if we can't get SN vin from output of `stormnode status`,
             # return an empty list
             if not my_vin:
                 return []
@@ -178,14 +178,14 @@ class DarkSilkDaemon():
 
     def we_are_the_winner(self):
         import darksilklib
-        # find the elected MN vin for superblock creation...
+        # find the elected SN vin for superblock creation...
         current_block_hash = self.current_block_hash()
         sn_list = self.get_stormnodes()
         winner = darksilklib.elect_sn(block_hash=current_block_hash, snlist=sn_list)
         my_vin = self.get_current_stormnode_vin()
 
         # print "current_block_hash: [%s]" % current_block_hash
-        # print "MN election winner: [%s]" % winner
+        # print "SN election winner: [%s]" % winner
         # print "current stormnode VIN: [%s]" % my_vin
 
         return (winner == my_vin)

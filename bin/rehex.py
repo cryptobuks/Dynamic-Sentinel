@@ -5,8 +5,7 @@ import pdb
 from pprint import pprint
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
+sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '../lib')))
 import darksilklib
 # ============================================================================
 usage = "%s <hex>" % sys.argv[0]
@@ -14,7 +13,7 @@ usage = "%s <hex>" % sys.argv[0]
 obj = None
 if len(sys.argv) < 2:
     print(usage)
-    sys.exit(2)
+    sys.exit(1)
 else:
     obj = darksilklib.deserialise(sys.argv[1])
 

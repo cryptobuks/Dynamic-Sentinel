@@ -29,7 +29,7 @@ db.connect()
 
 
 # TODO: lookup table?
-DASHD_GOVOBJ_TYPES = {
+DARKSILKD_GOVOBJ_TYPES = {
     'proposal': 1,
     'superblock': 2,
     'watchdog': 3,
@@ -257,7 +257,7 @@ class Proposal(GovernanceClass, BaseModel):
     payment_amount = DecimalField(max_digits=16, decimal_places=8)
     object_hash = CharField(max_length=64)
 
-    govobj_type = DASHD_GOVOBJ_TYPES['proposal']
+    govobj_type = DARKSILKD_GOVOBJ_TYPES['proposal']
 
     class Meta:
         db_table = 'proposals'
@@ -334,10 +334,7 @@ class Proposal(GovernanceClass, BaseModel):
         return False
 
     @classmethod
-    def approved_and_ranked(self, darksilkd):
-        proposal_quorum = darksilkd.governance_quorum()
-        next_superblock_max_budget = darksilkd.next_superblock_max_budget()
-
+    def approved_and_ranked(self, proposal_quorum, next_superblock_max_budget):
         # return all approved proposals, in order of descending vote count
         #
         # we need a secondary 'order by' in case of a tie on vote count, since
@@ -396,7 +393,7 @@ class Superblock(BaseModel, GovernanceClass):
     sb_hash = CharField()
     object_hash = CharField(max_length=64)
 
-    govobj_type = DASHD_GOVOBJ_TYPES['superblock']
+    govobj_type = DARKSILKD_GOVOBJ_TYPES['superblock']
     only_stormnode_can_submit = True
 
     class Meta:
@@ -556,7 +553,7 @@ class Watchdog(BaseModel, GovernanceClass):
     created_at = IntegerField()
     object_hash = CharField(max_length=64)
 
-    govobj_type = DASHD_GOVOBJ_TYPES['watchdog']
+    govobj_type = DARKSILKD_GOVOBJ_TYPES['watchdog']
     only_stormnode_can_submit = True
 
     @classmethod

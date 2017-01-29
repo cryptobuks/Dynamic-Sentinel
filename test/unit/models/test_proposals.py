@@ -4,10 +4,7 @@ import os
 import time
 
 os.environ['SENTINEL_ENV'] = 'test'
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'lib'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '../../lib')))
 
 import misc
 import config
@@ -230,7 +227,7 @@ def test_approved_and_ranked(go_list_proposals):
     for item in go_list_proposals:
         (go, subobj) = GovernanceObject.import_gobject_from_darksilkd(darksilkd, item)
 
-    prop_list = Proposal.approved_and_ranked(darksilkd)
+    prop_list = Proposal.approved_and_ranked(proposal_quorum=1, next_superblock_max_budget=60)
 
     assert prop_list[0].object_hash == u'dfd7d63979c0b62456b63d5fc5306dbec451180adee85876cbf5b28c69d1a86c'
     assert prop_list[1].object_hash == u'0523445762025b2e01a2cd34f1d10f4816cf26ee1796167e5b029901e5873630'

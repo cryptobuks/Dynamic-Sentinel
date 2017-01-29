@@ -50,7 +50,7 @@ def elect_sn(**kwargs):
     current_block_hash = kwargs['block_hash']
     sn_list = kwargs['snlist']
 
-    # filter only enabled MNs
+    # filter only enabled SNs
     enabled = [sn for sn in sn_list if sn.status == 'ENABLED']
 
     block_hash_hash = hashit(current_block_hash)
@@ -86,7 +86,7 @@ def parse_stormnode_status_vin(status_vin_string):
     return vin
 
 
-def create_superblock(darksilkd, proposals, event_block_height):
+def create_superblock(proposals, event_block_height, budget_max, sb_epoch_time):
     from models import Superblock, GovernanceObject, Proposal
 
     # don't create an empty superblock
@@ -95,9 +95,6 @@ def create_superblock(darksilkd, proposals, event_block_height):
         return None
 
     budget_allocated = Decimal(0)
-    budget_max = darksilkd.get_superblock_budget_allocation(event_block_height)
-
-    sb_epoch_time = darksilkd.block_height_to_epoch(event_block_height)
     fudge = 60 * 60 * 2  # fudge-factor to allow for slighly incorrect estimates
 
     payments = []
@@ -177,7 +174,7 @@ def create_superblock(darksilkd, proposals, event_block_height):
 
 # shims 'til we can fix the darksilkd side
 def SHIM_serialise_for_darksilkd(sentinel_hex):
-    from models import DASHD_GOVOBJ_TYPES
+    from models import DARKSILKD_GOVOBJ_TYPES
     # unpack
     obj = deserialise(sentinel_hex)
 
@@ -185,7 +182,7 @@ def SHIM_serialise_for_darksilkd(sentinel_hex):
     govtype = obj[0]
 
     # add 'type' attribute
-    obj[1]['type'] = DASHD_GOVOBJ_TYPES[govtype]
+    obj[1]['type'] = DARKSILKD_GOVOBJ_TYPES[govtype]
 
     # superblock => "trigger" in darksilkd
     if govtype == 'superblock':
@@ -201,7 +198,7 @@ def SHIM_serialise_for_darksilkd(sentinel_hex):
 
 # shims 'til we can fix the darksilkd side
 def SHIM_deserialise_from_darksilkd(darksilkd_hex):
-    from models import DASHD_GOVOBJ_TYPES
+    from models import DARKSILKD_GOVOBJ_TYPES
 
     # unpack
     obj = deserialise(darksilkd_hex)

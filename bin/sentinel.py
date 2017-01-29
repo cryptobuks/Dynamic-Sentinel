@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '../lib')))
 import init
 import config
 import misc
@@ -87,8 +86,11 @@ def attempt_superblock_creation(darksilkd):
         printdbg("Not in maturity phase yet -- will not attempt Superblock")
         return
 
-    proposals = Proposal.approved_and_ranked(darksilkd)
-    sb = darksilklib.create_superblock(darksilkd, proposals, event_block_height)
+    proposals = Proposal.approved_and_ranked(proposal_quorum=darksilkd.governance_quorum(), next_superblock_max_budget=darksilkd.next_superblock_max_budget())
+    budget_max = darksilkd.get_superblock_budget_allocation(event_block_height)
+    sb_epoch_time = darksilkd.block_height_to_epoch(event_block_height)
+
+    sb = darksilklib.create_superblock(proposals, event_block_height, budget_max, sb_epoch_time)
     if not sb:
         printdbg("No superblock created, sorry. Returning.")
         return
@@ -122,7 +124,7 @@ def check_object_validity(darksilkd):
 
 
 def is_darksilkd_port_open(darksilkd):
-    # test socket open before beginning, display instructive message to MN
+    # test socket open before beginning, display instructive message to SN
     # operators if it's not
     port_open = False
     try:
@@ -163,7 +165,7 @@ def main():
     # general flow:
     # ========================================================================
     #
-    # load "gobject list" rpc command data & create new objects in local MySQL DB
+    # load "gobject list" rpc command data, sync objects into internal database
     perform_darksilkd_object_sync(darksilkd)
 
     # delete old watchdog objects, create a new if necessary

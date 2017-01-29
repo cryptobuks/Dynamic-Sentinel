@@ -4,8 +4,7 @@ import sys
 import re
 
 os.environ['SENTINEL_ENV'] = 'test'
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '../../lib')))
 
 import config
 from darksilk_config import DarkSilkConfig
@@ -61,7 +60,7 @@ def test_get_rpc_creds():
         assert key in creds
     assert creds.get('user') == 'darksilkrpc'
     assert creds.get('password') == 'EwJeV3fZTyTVozdECF627BkBMnNDwQaVLakG3A4wXYyk'
-    assert creds.get('port') == 19998
+    assert creds.get('port') == 31750
 
 
 # ensure darksilk network (mainnet, testnet) matches that specified in config

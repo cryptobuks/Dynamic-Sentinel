@@ -99,6 +99,4 @@ docs/.DS_Store
 ignore/
 
 # SQLite databases
-database/sentinel.db
-database/sentinel_test.db
-database/sentinel.db_test
+database/*.db

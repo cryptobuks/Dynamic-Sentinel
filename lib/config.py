@@ -1,10 +1,8 @@
 """
     Set up defaults and read sentinel.conf
 """
-
-import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '.', 'lib'))
+import sys
+import os
 from darksilk_config import DarkSilkConfig
 
 sentinel_cfg = DarkSilkConfig.tokenize('sentinel.conf')
@@ -13,16 +11,24 @@ sentinel_cfg = DarkSilkConfig.tokenize('sentinel.conf')
 def get_darksilk_conf():
     home = os.environ.get('HOME')
 
-    darksilk_conf = os.path.join(home, ".darksilkcore/darksilk.conf")
+    darksilk_conf = os.path.join(home, ".darksilk/darksilk.conf")
     if sys.platform == 'darwin':
-        darksilk_conf = os.path.join(home, "Library/Application Support/DarkSilkCore/darksilk.conf")
+        darksilk_conf = os.path.join(home, "Library/Application Support/DarkSilk/darksilk.conf")
 
     darksilk_conf = sentinel_cfg.get('darksilk_conf', darksilk_conf)
 
     return darksilk_conf
 
+
 def get_network():
     return sentinel_cfg.get('network', 'mainnet')
+
+
+def sqlite_test_db_name(sqlite_file_path):
+    (root, ext) = os.path.splitext(sqlite_file_path)
+    test_sqlite_file_path = root + '_test' + ext
+    return test_sqlite_file_path
+
 
 def get_db_conn():
     import peewee
@@ -35,10 +41,13 @@ def get_db_conn():
     db_user = sentinel_cfg.get('db_user', 'sentinel')
     db_password = sentinel_cfg.get('db_password', 'sentinel')
     db_charset = sentinel_cfg.get('db_charset', 'utf8mb4')
-    db_driver = sentinel_cfg.get('db_driver', 'mysql')
+    db_driver = sentinel_cfg.get('db_driver', 'sqlite')
 
     if (env == 'test'):
-        db_name = "%s_test" % db_name
+        if db_driver == 'sqlite':
+            db_name = sqlite_test_db_name(db_name)
+        else:
+            db_name = "%s_test" % db_name
 
     peewee_drivers = {
         'mysql': peewee.MySQLDatabase,
