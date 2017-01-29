@@ -186,7 +186,7 @@ if __name__ == '__main__':
     is_running = Transient.get(mutex_key)
     if is_running:
         printdbg("An instance of Sentinel is already running -- aborting.")
-        return
+        sys.exit(1)
     else:
         Transient.set(mutex_key, misc.now(), timeout_seconds)
 
