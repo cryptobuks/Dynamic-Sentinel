@@ -32,7 +32,7 @@ class DarkSilkConfig():
         creds = { key: value for (key, value) in match }
 
         # standard DarkSilk defaults...
-        default_port = 31500 if (network == 'mainnet') else 31750
+        default_port = 31650 if (network == 'mainnet') else 31750
 
         # use default port for network if not specified in darksilk.conf
         if not ( 'port' in creds ):
