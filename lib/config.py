@@ -1,10 +1,8 @@
 """
     Set up defaults and read sentinel.conf
 """
-
-import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '.', 'lib'))
+import sys
+import os
 from darksilk_config import DarkSilkConfig
 
 sentinel_cfg = DarkSilkConfig.tokenize('sentinel.conf')

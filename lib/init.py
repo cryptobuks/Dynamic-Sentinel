@@ -48,7 +48,7 @@ def is_database_correctly_configured():
     except (peewee.ImproperlyConfigured, peewee.OperationalError, ImportError) as e:
         print("[error]: %s" % e)
         print(cannot_connect_message)
-        sys.exit(2)
+        sys.exit(1)
 
     return configured
 
@@ -77,19 +77,19 @@ def main():
 
     if not is_valid_python_version():
         print("Python %s is not supported" % python_short_ver_str())
-        sys.exit(0)
+        sys.exit(1)
 
     if not are_deps_installed():
         print("Please ensure all dependencies are installed:")
         print(install_instructions)
-        sys.exit(0)
+        sys.exit(1)
 
     if not is_database_correctly_configured():
         print("Please ensure correct database configuration.")
-        sys.exit(0)
+        sys.exit(1)
 
     if not has_darksilk_conf():
         print("DarkSilk Core must be installed and configured, including JSONRPC access in darksilk.conf")
-        sys.exit(0)
+        sys.exit(1)
 
 main()

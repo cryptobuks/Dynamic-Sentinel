@@ -6,15 +6,18 @@ Based on https://bitcointalk.org/index.php?topic=1026.0 (public domain)
 import hashlib
 
 # for compatibility with following code...
-class SHA256:
+class SHA256(object):
     new = hashlib.sha256
+
 
 if str != bytes:
     # Python 3.x
     def ord(c):
         return c
+
     def chr(n):
-        return bytes( (n,) )
+        return bytes((n,))
+
 
 __b58chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 __b58base = len(__b58chars)
@@ -38,12 +41,14 @@ def b58encode(v):
     # leading 0-bytes in the input become leading-1s
     nPad = 0
     for c in v:
-        if c == '\0': nPad += 1
-        else: break
+        if c == '\0':
+            nPad += 1
+        else:
+            break
 
-    return (__b58chars[0]*nPad) + result
+    return (__b58chars[0] * nPad) + result
 
-def b58decode(v, length = None):
+def b58decode(v, length=None):
     """ decode v into a string of len bytes
     """
     long_value = 0
@@ -59,10 +64,13 @@ def b58decode(v, length = None):
 
     nPad = 0
     for c in v:
-        if c == __b58chars[0]: nPad += 1
-        else: break
+        if c == __b58chars[0]:
+            nPad += 1
+        else:
+            break
 
-    result = chr(0)*nPad + result
+    result = chr(0) * nPad + result
+
     if length is not None and len(result) != length:
         return None
 
@@ -90,7 +98,9 @@ def b58decode_chk(v):
 def get_bcaddress_version(strAddress):
     """ Returns None if strAddress is invalid.  Otherwise returns integer version of address. """
     addr = b58decode_chk(strAddress)
-    if addr is None or len(addr)!=21: return None
+    if addr is None or len(addr) != 21:
+        return None
+
     version = addr[0]
     return ord(version)
 

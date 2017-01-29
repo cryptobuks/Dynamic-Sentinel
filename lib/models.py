@@ -332,9 +332,7 @@ class Proposal(GovernanceClass, BaseModel):
         return False
 
     @classmethod
-    def approved_and_ranked(self, darksilkd):
-        proposal_quorum = darksilkd.governance_quorum()
-        next_superblock_max_budget = darksilkd.next_superblock_max_budget()
+    def approved_and_ranked(self, proposal_quorum, next_superblock_max_budget):
 
         # return all approved proposals, in order of descending vote count
         #
