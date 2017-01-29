@@ -1,4 +1,4 @@
-# DarkSilk Sentinel
+# **DarkSilk Sentinel**
 
 An all-powerful toolset for DarkSilk.
 
