@@ -1,8 +1,11 @@
-import sys, os
-sys.path.append( os.path.join( os.path.dirname(__file__), '..' ) )
-sys.path.append( os.path.join( os.path.dirname(__file__), '..', 'lib' ) )
+import sys
+import os
 import io
 import re
++sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
++sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
+
+
 from misc import printdbg
 
 class DarkSilkConfig():
@@ -29,13 +32,13 @@ class DarkSilkConfig():
         match = re.findall(r'rpc(user|password|port)=(.*?)$', data, re.MULTILINE)
 
         # python >= 2.7
-        creds = { key: value for (key, value) in match }
+        creds = {key: value for (key, value) in match}
 
         # standard DarkSilk defaults...
         default_port = 31650 if (network == 'mainnet') else 31750
 
         # use default port for network if not specified in darksilk.conf
-        if not ( 'port' in creds ):
+        if not ('port' in creds):
             creds[u'port'] = default_port
 
         # convert to an int if taken from darksilk.conf
@@ -50,7 +53,7 @@ class DarkSilkConfig():
         try:
             data = self.slurp_config_file(filename)
             match = re.findall(r'(.*?)=(.*?)$', data, re.MULTILINE)
-            tokens = { key: value for (key, value) in match }
+            tokens = {key: value for (key, value) in match}
         except IOError as e:
             printdbg("[warning] error reading config file: %s" % e)
 

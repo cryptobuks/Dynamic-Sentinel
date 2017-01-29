@@ -1,6 +1,7 @@
-import sys, os
-sys.path.append( os.path.join( os.path.dirname(__file__), '..' ) )
-sys.path.append( os.path.join( os.path.dirname(__file__), '..' , 'lib' ) )
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
 import init
 import time
 import binascii
@@ -48,7 +49,6 @@ SCHEMA_VERSION = '20170111-1'
 # === models ===
 
 class BaseModel(playhouse.signals.Model):
-
     class Meta:
         database = db
 
@@ -126,7 +126,7 @@ class GovernanceObject(BaseModel):
 
         # exclude any invalid model data from darksilkd...
         valid_keys = subclass.serialisable_fields()
-        subdikt = { k: dikt[k] for k in valid_keys if k in dikt }
+        subdikt = {k: dikt[k] for k in valid_keys if k in dikt}
 
         # get/create, then sync vote counts from darksilkd, with every run
         govobj, created = self.get_or_create(object_hash=object_hash, defaults=gobj_dict)
@@ -157,8 +157,8 @@ class GovernanceObject(BaseModel):
         return (govobj, subobj)
 
     def get_vote_command(self, signal, outcome):
-        cmd = [ 'gobject', 'vote-conf', self.object_hash,
-                signal.name, outcome.name ]
+        cmd = ['gobject', 'vote-conf', self.object_hash,
+               signal.name, outcome.name]
         return cmd
 
     def vote(self, darksilkd, signal, outcome):
@@ -167,7 +167,7 @@ class GovernanceObject(BaseModel):
         # At this point, will probably never reach here. But doesn't hurt to
         # have an extra check just in case objects get out of sync (people will
         # muck with the DB).
-        if ( self.object_hash == '0' or not misc.is_hash(self.object_hash)):
+        if (self.object_hash == '0' or not misc.is_hash(self.object_hash)):
             printdbg("No governance object hash, nothing to vote on.")
             return
 
@@ -222,7 +222,7 @@ class GovernanceObject(BaseModel):
                  object_hash=self.object_hash).save()
 
     def voted_on(self, **kwargs):
-        signal  = kwargs.get('signal', None)
+        signal = kwargs.get('signal', None)
         outcome = kwargs.get('outcome', None)
 
         query = self.votes
@@ -237,8 +237,8 @@ class GovernanceObject(BaseModel):
         return count
 
 class Setting(BaseModel):
-    name     = CharField(default='')
-    value    = CharField(default='')
+    name = CharField(default='')
+    value = CharField(default='')
     created_at = DateTimeField(default=datetime.datetime.utcnow())
     updated_at = DateTimeField(default=datetime.datetime.utcnow())
 
@@ -385,12 +385,12 @@ class Proposal(GovernanceClass, BaseModel):
             print("Unable to prepare: %s" % e.message)
 
 class Superblock(BaseModel, GovernanceClass):
-    governance_object = ForeignKeyField(GovernanceObject, related_name = 'superblocks', on_delete='CASCADE', on_update='CASCADE')
-    event_block_height   = IntegerField()
-    payment_addresses    = TextField()
-    payment_amounts      = TextField()
-    proposal_hashes      = TextField(default='')
-    sb_hash      = CharField()
+    governance_object = ForeignKeyField(GovernanceObject, related_name='superblocks', on_delete='CASCADE', on_update='CASCADE')
+    event_block_height = IntegerField()
+    payment_addresses = TextField()
+    payment_amounts = TextField()
+    proposal_hashes = TextField(default='')
+    sb_hash = CharField()
     object_hash = CharField(max_length=64)
 
     govobj_type = DARKSILKD_GOVOBJ_TYPES['superblock']
@@ -470,15 +470,15 @@ class Superblock(BaseModel, GovernanceClass):
     @classmethod
     def is_voted_funding(self, ebh):
         count = (self.select()
-                    .where(self.event_block_height == ebh)
-                    .join(GovernanceObject)
-                    .join(Vote)
-                    .join(Signal)
-                    .switch(Vote) # switch join query context back to Vote
-                    .join(Outcome)
-                    .where(Vote.signal == VoteSignals.funding)
-                    .where(Vote.outcome == VoteOutcomes.yes)
-                .count())
+                 .where(self.event_block_height == ebh)
+                 .join(GovernanceObject)
+                 .join(Vote)
+                 .join(Signal)
+                 .switch(Vote)  # switch join query context back to Vote
+                 .join(Outcome)
+                 .where(Vote.signal == VoteSignals.funding)
+                 .where(Vote.outcome == VoteOutcomes.yes)
+                 .count())
         return count
 
     @classmethod
@@ -498,8 +498,8 @@ class Superblock(BaseModel, GovernanceClass):
     def find_highest_deterministic(self, sb_hash):
         # highest block hash wins
         query = (self.select()
-                    .where(self.sb_hash == sb_hash)
-                    .order_by(self.object_hash.desc()))
+                 .where(self.sb_hash == sb_hash)
+                 .order_by(self.object_hash.desc()))
         try:
             obj = query.limit(1)[0]
         except IndexError as e:
@@ -528,9 +528,9 @@ class Outcome(BaseModel):
         db_table = 'outcomes'
 
 class Vote(BaseModel):
-    governance_object = ForeignKeyField(GovernanceObject, related_name = 'votes', on_delete='CASCADE', on_update='CASCADE')
-    signal = ForeignKeyField(Signal, related_name = 'votes', on_delete='CASCADE', on_update='CASCADE')
-    outcome = ForeignKeyField(Outcome, related_name = 'votes', on_delete='CASCADE', on_update='CASCADE')
+    governance_object = ForeignKeyField(GovernanceObject, related_name='votes', on_delete='CASCADE', on_update='CASCADE')
+    signal = ForeignKeyField(Signal, related_name='votes', on_delete='CASCADE', on_update='CASCADE')
+    outcome = ForeignKeyField(Outcome, related_name='votes', on_delete='CASCADE', on_update='CASCADE')
     voted_at = DateTimeField(default=datetime.datetime.utcnow())
     created_at = DateTimeField(default=datetime.datetime.utcnow())
     updated_at = DateTimeField(default=datetime.datetime.utcnow())
@@ -540,7 +540,7 @@ class Vote(BaseModel):
         db_table = 'votes'
 
 class Watchdog(BaseModel, GovernanceClass):
-    governance_object = ForeignKeyField(GovernanceObject, related_name = 'watchdogs')
+    governance_object = ForeignKeyField(GovernanceObject, related_name='watchdogs')
     created_at = IntegerField()
     object_hash = CharField(max_length=64)
 
@@ -745,5 +745,6 @@ check_db_sane()     # ensure tables exist
 load_db_seeds()     # ensure seed data loaded
 
 # convenience accessors
-VoteSignals = misc.Bunch(**{ sig.name: sig for sig in Signal.select() })
-VoteOutcomes = misc.Bunch(**{ out.name: out for out in Outcome.select() })
+VoteSignals = misc.Bunch(**{sig.name: sig for sig in Signal.select()})
+VoteOutcomes = misc.Bunch(**{out.name: out for out in Outcome.select()})
+View

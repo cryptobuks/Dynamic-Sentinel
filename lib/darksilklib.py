@@ -1,6 +1,7 @@
-import sys, os
-sys.path.append( os.path.join( os.path.dirname(__file__), '..' ) )
-sys.path.append( os.path.join( os.path.dirname(__file__), '..', 'lib' ) )
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
 import base58
 import hashlib
 import re
@@ -21,7 +22,7 @@ def is_valid_darksilk_address(address, network='mainnet'):
 
     # Check length (This is important because the base58 library has problems
     # with long addresses (which are invalid anyway).
-    if ( ( len( address ) < 26 ) or ( len( address ) > 35 ) ):
+    if ((len(address) < 26) or (len(address) > 35)):
         return False
 
     address_version = None
@@ -33,7 +34,7 @@ def is_valid_darksilk_address(address, network='mainnet'):
         # rescue from exception, not a valid DarkSilk address
         return False
 
-    if ( address_version != darksilk_version ):
+    if (address_version != darksilk_version):
         return False
 
     return True
@@ -53,12 +54,12 @@ def elect_sn(**kwargs):
 
     candidates = []
     for sn in enabled:
-        sn_vin_hash = hashit( sn.vin )
+        sn_vin_hash = hashit(sn.vin)
         diff = sn_vin_hash - block_hash_hash
-        absdiff = abs( diff )
-        candidates.append({ 'vin': sn.vin, 'diff': absdiff })
+        absdiff = abs(diff)
+        candidates.append({'vin': sn.vin, 'diff': absdiff})
 
-    candidates.sort( key = lambda k: k['diff'] )
+    candidates.sort(key=lambda k: k['diff'])
 
     try:
         winner = candidates[0]['vin']
@@ -69,9 +70,9 @@ def elect_sn(**kwargs):
 
 
 def parse_stormnode_status_vin(status_vin_string):
-    status_vin_string_regex = re.compile( 'CTxIn\(COutPoint\(([0-9a-zA-Z]+),\\s*(\d+)\),' )
+    status_vin_string_regex = re.compile('CTxIn\(COutPoint\(([0-9a-zA-Z]+),\\s*(\d+)\),')
 
-    m = status_vin_string_regex.match( status_vin_string )
+    m = status_vin_string_regex.match(status_vin_string)
     txid = m.group(1)
     index = m.group(2)
 
@@ -85,12 +86,12 @@ def create_superblock(darksilkd, proposals, event_block_height):
     from models import Superblock, GovernanceObject, Proposal
 
     # don't create an empty superblock
-    if ( len(proposals) == 0 ):
+    if (len(proposals) == 0):
         printdbg("No proposals, cannot create an empty superblock.")
         return None
 
     budget_allocated = Decimal(0)
-    budget_max       = darksilkd.get_superblock_budget_allocation(event_block_height)
+    budget_max = darksilkd.get_superblock_budget_allocation(event_block_height)
 
     sb_epoch_time = darksilkd.block_height_to_epoch(event_block_height)
     fudge = 60 * 60 * 2  # fudge-factor to allow for slighly incorrect estimates
@@ -114,7 +115,7 @@ def create_superblock(darksilkd, proposals, event_block_height):
 
         # skip proposals if the SB isn't within the Proposal time window...
         window_start = proposal.start_epoch - fudge
-        window_end   = proposal.end_epoch + fudge
+        window_end = proposal.end_epoch + fudge
 
         printdbg("\twindow_start: %s" % epoch2str(window_start))
         printdbg("\twindow_end: %s" % epoch2str(window_end))
@@ -145,10 +146,10 @@ def create_superblock(darksilkd, proposals, event_block_height):
         # else add proposal and keep track of total budget allocation
         budget_allocated += proposal.payment_amount
 
-        payment = { 'address': proposal.payment_address,
-                    'amount': "{0:.8f}".format(proposal.payment_amount),
-                    'proposal': "{}".format(proposal.object_hash) }
-        payments.append( payment )
+        payment = {'address': proposal.payment_address,
+                   'amount': "{0:.8f}".format(proposal.payment_amount),
+                   'proposal': "{}".format(proposal.object_hash)}
+        payments.append(payment)
 
     # don't create an empty superblock
     if not payments:
@@ -160,10 +161,10 @@ def create_superblock(darksilkd, proposals, event_block_height):
     payments.sort(key=lambda k: k['proposal'], reverse=True)
 
     sb = Superblock(
-        event_block_height = event_block_height,
-        payment_addresses = '|'.join([pd['address' ] for pd in payments]),
-        payment_amounts   = '|'.join([pd['amount'  ] for pd in payments]),
-        proposal_hashes   = '|'.join([pd['proposal'] for pd in payments]),
+        event_block_height=event_block_height,
+        payment_addresses='|'.join([pd['address'] for pd in payments]),
+        payment_amounts='|'.join([pd['amount'] for pd in payments]),
+        proposal_hashes='|'.join([pd['proposal'] for pd in payments]),
     )
     printdbg("generated superblock: %s" % sb.__dict__)
 
@@ -221,7 +222,7 @@ def SHIM_deserialise_from_darksilkd(darksilkd_hex):
 # convenience
 def deserialise(hexdata):
     json = binascii.unhexlify(hexdata)
-    obj  = simplejson.loads(json, use_decimal=True)
+    obj = simplejson.loads(json, use_decimal=True)
     return obj
 
 def serialise(dikt):
@@ -269,7 +270,7 @@ def parse_raw_votes(raw_votes):
     votes = []
     for v in list(raw_votes.values()):
         (outpoint, ntime, outcome, signal) = v.split(':')
-        signal  = signal.lower()
+        signal = signal.lower()
         outcome = outcome.lower()
 
         sn_collateral_outpoint = parse_stormnode_status_vin(outpoint)

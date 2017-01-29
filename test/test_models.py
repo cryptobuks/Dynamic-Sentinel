@@ -1,7 +1,7 @@
 import pytest
 import os
 import sys
-sys.path.append( os.path.join( os.path.dirname(__file__), '..', 'lib' ) )
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
 
 # setup/teardown?
 
@@ -13,7 +13,7 @@ def proposal():
 
 def test_proposal(proposal):
     d = proposal.get_dict()
-    assert type(d) == type({})
+    assert isinstance(d, dict)
 
     fields = [
         'name',
@@ -36,7 +36,7 @@ def governance_object():
 
 def test_governance_object(governance_object):
     d = governance_object._meta.columns
-    assert type(d) == type({})
+    assert isinstance(d, dict)
 
     fields = [
         'id',

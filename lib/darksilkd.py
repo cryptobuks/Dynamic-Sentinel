@@ -1,9 +1,10 @@
 """
 darksilkd JSONRPC interface
 """
-import sys, os
-sys.path.append( os.path.join( os.path.dirname(__file__), '..' ) )
-sys.path.append( os.path.join( os.path.dirname(__file__), '..', 'lib' ) )
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
 import config
 import base58
 from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
@@ -45,7 +46,7 @@ class DarkSilkDaemon():
 
     def get_stormnodes(self):
         snlist = self.rpc_command('stormnodelist', 'full')
-        return [ Stormnode(k, v) for (k, v) in snlist.items()]
+        return [Stormnode(k, v) for (k, v) in snlist.items()]
 
     def get_object_list(self):
         try:
@@ -78,7 +79,7 @@ class DarkSilkDaemon():
 
     @property
     def govinfo(self):
-        if ( not self.governance_info ):
+        if (not self.governance_info):
             self.governance_info = self.rpc_command('getgovernanceinfo')
         return self.governance_info
 
@@ -94,22 +95,22 @@ class DarkSilkDaemon():
 
     def last_superblock_height(self):
         height = self.rpc_command('getblockcount')
-        cycle  = self.superblockcycle()
+        cycle = self.superblockcycle()
         return cycle * (height // cycle)
 
     def next_superblock_height(self):
         return self.last_superblock_height() + self.superblockcycle()
 
     def is_stormnode(self):
-        return not (self.get_current_stormnode_vin() == None)
+        return not (self.get_current_stormnode_vin() is None)
 
     def is_synced(self):
         snsync_status = self.rpc_command('snsync', 'status')
-        synced = (snsync_status['IsBlockchainSynced']
-                    and snsync_status['IsStormnodeListSynced']
-                    and snsync_status['IsWinnersListSynced']
-                    and snsync_status['IsSynced']
-                    and not(snsync_status['IsFailed']))
+        synced = (snsync_status['IsBlockchainSynced'] and
+                  snsync_status['IsStormnodeListSynced'] and
+                  snsync_status['IsWinnersListSynced'] and
+                  snsync_status['IsSynced'] and
+                  not snsync_status['IsFailed'])
         return synced
 
     def current_block_hash(self):
@@ -157,7 +158,7 @@ class DarkSilkDaemon():
 
     def is_govobj_maturity_phase(self):
         # 3-day period for govobj maturity
-        maturity_phase_delta = 1662 #  ~(60*24*3)/2.6
+        maturity_phase_delta = 1662      # ~(60*24*3)/2.6
         if config.network == 'testnet':
             maturity_phase_delta = 24    # testnet
 

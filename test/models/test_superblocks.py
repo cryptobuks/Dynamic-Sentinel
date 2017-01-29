@@ -1,14 +1,13 @@
-from pprint import pprint
-import pdb
 import pytest
-import sys, os
+import sys
+import os
 import time
 
 os.environ['SENTINEL_ENV'] = 'test'
-sys.path.append( os.path.join( os.path.dirname(__file__), '..', 'lib' ) )
-sys.path.append( os.path.join( os.path.dirname(__file__), '..', '..', 'lib' ) )
-sys.path.append( os.path.join( os.path.dirname(__file__), '..' ) )
-sys.path.append( os.path.join( os.path.dirname(__file__), '..', '..' ) )
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'lib'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 import misc
 import config
@@ -126,76 +125,76 @@ def test_superblock_is_valid(superblock):
     from darksilkd import DarkSilkDaemon
     darksilkd = DarkSilkDaemon.from_darksilk_conf(config.darksilk_conf)
 
-    orig = Superblock(**superblock.get_dict()) # make a copy
+    orig = Superblock(**superblock.get_dict())  # make a copy
 
     # original as-is should be valid
-    assert orig.is_valid() == True
+    assert orig.is_valid() is True
 
     # mess with payment amounts
     superblock.payment_amounts = '7|yyzx'
-    assert superblock.is_valid() == False
+    assert superblock.is_valid() is False
 
     superblock.payment_amounts = '7,|yzx'
-    assert superblock.is_valid() == False
+    assert superblock.is_valid() is False
 
     # reset
     superblock = Superblock(**orig.get_dict())
-    assert superblock.is_valid() == True
+    assert superblock.is_valid() is True
 
     # mess with payment addresses
     superblock.payment_addresses = 'yTC62huR4YQEPn9AJHjnQxxreHSbgAoatV|1234 Anywhere ST, Chicago, USA'
-    assert superblock.is_valid() == False
+    assert superblock.is_valid() is False
 
     # single payment addr/amt is ok
     superblock.payment_addresses = 'yTC62huR4YQEPn9AJHjnQxxreHSbgAoatV'
     superblock.payment_amounts = '5.00'
-    assert superblock.is_valid() == True
+    assert superblock.is_valid() is True
 
     # ensure number of payment addresses matches number of payments
     superblock.payment_addresses = 'yTC62huR4YQEPn9AJHjnQxxreHSbgAoatV'
     superblock.payment_amounts = '37.00|23.24'
-    assert superblock.is_valid() == False
+    assert superblock.is_valid() is False
 
     superblock.payment_addresses = 'yYe8KwyaUu5YswSYmB3q3ryx8XTUu9y7Ui|yTC62huR4YQEPn9AJHjnQxxreHSbgAoatV'
     superblock.payment_amounts = '37.00'
-    assert superblock.is_valid() == False
+    assert superblock.is_valid() is False
 
     # ensure amounts greater than zero
     superblock.payment_addresses = 'yTC62huR4YQEPn9AJHjnQxxreHSbgAoatV'
     superblock.payment_amounts = '-37.00'
-    assert superblock.is_valid() == False
+    assert superblock.is_valid() is False
 
     # reset
     superblock = Superblock(**orig.get_dict())
-    assert superblock.is_valid() == True
+    assert superblock.is_valid() is True
 
     # mess with proposal hashes
     superblock.proposal_hashes = '7|yyzx'
-    assert superblock.is_valid(darksilkd) == False
+    assert superblock.is_valid(darksilkd) is False
 
     superblock.proposal_hashes = '7,|yyzx'
-    assert superblock.is_valid() == False
+    assert superblock.is_valid() is False
 
     superblock.proposal_hashes = '0|1'
-    assert superblock.is_valid() == False
+    assert superblock.is_valid() is False
 
     superblock.proposal_hashes = '0000000000000000000000000000000000000000000000000000000000000000|1111111111111111111111111111111111111111111111111111111111111111'
-    assert superblock.is_valid() == True
+    assert superblock.is_valid() is True
 
     # reset
     superblock = Superblock(**orig.get_dict())
-    assert superblock.is_valid() == True
+    assert superblock.is_valid() is True
 
 def test_superblock_is_deletable(superblock):
     # now = misc.now()
-    # assert superblock.is_deletable() == False
+    # assert superblock.is_deletable() is False
 
     # superblock.end_epoch = now - (86400 * 29)
-    # assert superblock.is_deletable() == False
+    # assert superblock.is_deletable() is False
 
     # add a couple seconds for time variance
     # superblock.end_epoch = now - ((86400 * 30) + 2)
-    # assert superblock.is_deletable() == True
+    # assert superblock.is_deletable() is True
     pass
 
 def test_serialisable_fields():

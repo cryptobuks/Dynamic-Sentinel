@@ -1,7 +1,8 @@
 import time
 from datetime import datetime
 import re
-import sys, os
+import sys
+import os
 
 def is_numeric(strin):
     import decimal
@@ -24,8 +25,7 @@ def printdbg(str):
 
 def is_hash(s):
     m = re.match('^[a-f0-9]{64}$', s)
-    if m: return True
-    return False
+    return m is not None
 
 def now():
     return int(time.time())

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import sys, os
+import sys
+import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import init
@@ -35,7 +36,7 @@ def watchdog_check(darksilkd):
     if 0 == active_count:
         # create/submit one
         printdbg("\tNo watchdogs exist... submitting new one.")
-        wd = Watchdog(created_at = int(time.time()))
+        wd = Watchdog(created_at=int(time.time()))
         wd.submit(darksilkd)
 
     else:

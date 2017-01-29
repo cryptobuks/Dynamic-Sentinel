@@ -1,11 +1,10 @@
-#!/usr/bin/env python
 """
     Set up defaults and read sentinel.conf
 """
 
 import sys, os
-sys.path.append( os.path.join( os.path.dirname(__file__), '.' ) )
-sys.path.append( os.path.join( os.path.dirname(__file__), '.', 'lib' ) )
+sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '.', 'lib'))
 from darksilk_config import DarkSilkConfig
 
 sentinel_cfg = DarkSilkConfig.tokenize('sentinel.conf')
@@ -29,13 +28,13 @@ def get_db_conn():
     env = os.environ.get('SENTINEL_ENV', 'production')
 
     # default values should be used unless you need a different config for development
-    db_host     = sentinel_cfg.get('db_host', '127.0.0.1')
-    db_port     = sentinel_cfg.get('db_port', None)
-    db_name     = sentinel_cfg.get('db_name', 'sentinel')
-    db_user     = sentinel_cfg.get('db_user', 'sentinel')
+    db_host = sentinel_cfg.get('db_host', '127.0.0.1')
+    db_port = sentinel_cfg.get('db_port', None)
+    db_name = sentinel_cfg.get('db_name', 'sentinel')
+    db_user = sentinel_cfg.get('db_user', 'sentinel')
     db_password = sentinel_cfg.get('db_password', 'sentinel')
-    db_charset  = sentinel_cfg.get('db_charset', 'utf8mb4')
-    db_driver   = sentinel_cfg.get('db_driver', 'mysql')
+    db_charset = sentinel_cfg.get('db_charset', 'utf8mb4')
+    db_driver = sentinel_cfg.get('db_driver', 'mysql')
 
     if (env == 'test'):
         db_name = "%s_test" % db_name
@@ -63,15 +62,6 @@ def get_db_conn():
 
     return db
 
-darksilk_conf = get_darksilk_conf()
-network   = get_network()
-db        = get_db_conn()
-
-"""
-    Installation Instructions:
-
-    1.) install mysql and create "sentinel" database
-    2.) import database/001.sql into sentinel database
-    3.) create a mysql user that has access
-    4.) save configuration as config.py
-"""
++darksilk_conf = get_darksilk_conf()
++network = get_network()
++db = get_db_conn()
