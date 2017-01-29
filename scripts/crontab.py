@@ -135,12 +135,12 @@ def main():
     # check darksilkd connectivity
     if not is_darksilkd_port_open(darksilkd):
         print("Cannot connect to darksilkd. Please ensure darksilkd is running and the JSONRPC port is open to Sentinel.")
-        sys.exit(2)
+        return
 
     # check darksilkd sync
     if not darksilkd.is_synced():
         print("darksilkd not synced with network! Awaiting full sync before running Sentinel.")
-        sys.exit(2)
+        return
 
     # ensure valid stormnode
     if not darksilkd.is_stormnode():
@@ -186,7 +186,7 @@ if __name__ == '__main__':
     is_running = Transient.get(mutex_key)
     if is_running:
         printdbg("An instance of Sentinel is already running -- aborting.")
-        sys.exit(2)
+        return
     else:
         Transient.set(mutex_key, misc.now(), timeout_seconds)
 
