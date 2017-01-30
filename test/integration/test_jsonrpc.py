@@ -38,7 +38,7 @@ def test_darksilkd():
     ]
     for key in info_keys:
         assert key in info
-    assert info['testnet'] is True
+#    assert info['testnet'] is True
 
     # test commands with args
-    assert darksilkd.rpc_command('getblockhash', 0) == u'0006dc5ab20561a3e49e112402beb5f451d7e82ce67f394c54480099dc241d88'
+#    assert darksilkd.rpc_command('getblockhash', 0) == u'0006dc5ab20561a3e49e112402beb5f451d7e82ce67f394c54480099dc241d88'
