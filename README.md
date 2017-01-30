@@ -33,7 +33,22 @@ Clone the Sentinel repo and install Python dependencies.
     $ virtualenv ./venv
     $ ./venv/bin/pip install -r requirements.txt
 
-### 3. Set up Cron
+
+### 3. Configuration
+
+An alternative (non-default) path to the `darksilk.conf` file can be specified in `sentinel.conf`:
+
+    darksilk_conf=/path/to/darksilk.conf
+    
+## Test the Configuration
+
+Test the config by runnings all tests from the sentinel folder you cloned into
+
+    $ ./venv/bin/py.test ./test
+
+With all tests passing and crontab setup, Sentinel will stay in sync with darksilkd and the installation is complete
+  
+### 4. Set up Cron
 
 Set up a crontab entry to call Sentinel regularly, recommended every 2 minutes, by first opening a crontab editor.
 
@@ -41,21 +56,7 @@ Set up a crontab entry to call Sentinel regularly, recommended every 2 minutes, 
 
 In the crontab editor, add the lines below, replacing '/home/YOURUSERNAME/sentinel' to the path where you cloned sentinel to:
 
-    */2 * * * * cd /home/YOURUSERNAME/sentinel && ./venv/bin/python bin/sentinel.py >/dev/null 2>&1
-
-### 4. Test the Configuration
-
-Test the config by runnings all tests from the sentinel folder you cloned into
-
-    $ ./venv/bin/py.test ./test
-
-With all tests passing and crontab setup, Sentinel will stay in sync with darksilkd and the installation is complete
-
-## Configuration
-
-An alternative (non-default) path to the `darksilk.conf` file can be specified in `sentinel.conf`:
-
-    darksilk_conf=/path/to/darksilk.conf
+    */2 * * * * cd /home/YOURUSERNAME/darksilk-sentinel && ./venv/bin/python bin/sentinel.py >/dev/null 2>&1
 
 ## Troubleshooting
 
