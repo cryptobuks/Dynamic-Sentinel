@@ -23,7 +23,7 @@ Update system packages and ensure virtualenv is installed:
 
 Make sure the local DarkSilk daemon running
 
-    $ darksilk-cli getinfo | grep version
+    $ ./darksilk-cli getinfo | grep version
 
 ### 2. Install Sentinel
 
