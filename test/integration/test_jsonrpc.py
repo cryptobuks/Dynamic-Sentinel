@@ -14,14 +14,14 @@ from darksilk_config import DarkSilkConfig
 
 def test_darksilkd():
     config_text = DarkSilkConfig.slurp_config_file(config.darksilk_conf)
-    creds = DarkSilkConfig.get_rpc_creds(config_text, 'mainnet')
+    creds = DarkSilkConfig.get_rpc_creds(config_text, 'testnet')
 
     darksilkd = DarkSilkDaemon(**creds)
     assert darksilkd.rpc_command is not None
 
     assert hasattr(darksilkd, 'rpc_connection')
 
-    # DarkSilk testnet block 0 hash == 0000b0f60bd743b8b5ed3e62a1fbad5d2c073d2b9cb3baa108872dbe1315e48e
+    # DarkSilk testnet block 0 hash == 0006dc5ab20561a3e49e112402beb5f451d7e82ce67f394c54480099dc241d88
     # test commands without arguments
     info = darksilkd.rpc_command('getinfo')
 
@@ -38,7 +38,7 @@ def test_darksilkd():
     ]
     for key in info_keys:
         assert key in info
-    assert info['mainnet'] is True
+    assert info['testnet'] is True
 
     # test commands with args
-    assert darksilkd.rpc_command('getblockhash', 0) == u'0000b0f60bd743b8b5ed3e62a1fbad5d2c073d2b9cb3baa108872dbe1315e48e'
+    assert darksilkd.rpc_command('getblockhash', 0) == u'0006dc5ab20561a3e49e112402beb5f451d7e82ce67f394c54480099dc241d88'
