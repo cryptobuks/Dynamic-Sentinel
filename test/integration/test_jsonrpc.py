@@ -21,7 +21,7 @@ def test_darksilkd():
 
     assert hasattr(darksilkd, 'rpc_connection')
 
-    # DarkSilk testnet block 0 hash == 00000bafbc94add76cb75e2ec92894837288a481e5c005f6563d91623bf8bc2c
+    # DarkSilk testnet block 0 hash == 0006dc5ab20561a3e49e112402beb5f451d7e82ce67f394c54480099dc241d88
     # test commands without arguments
     info = darksilkd.rpc_command('getinfo')
 
@@ -41,4 +41,4 @@ def test_darksilkd():
     assert info['testnet'] is True
 
     # test commands with args
-    assert darksilkd.rpc_command('getblockhash', 0) == u'00000bafbc94add76cb75e2ec92894837288a481e5c005f6563d91623bf8bc2c'
+    assert darksilkd.rpc_command('getblockhash', 0) == u'0006dc5ab20561a3e49e112402beb5f451d7e82ce67f394c54480099dc241d88'
