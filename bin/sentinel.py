@@ -173,7 +173,7 @@ def main():
     watchdog_check(darksilkd)
 
     # auto vote network objects as valid/invalid
-    check_object_validity(darksilkd)
+    # check_object_validity(darksilkd)
 
     # create a Superblock if necessary
     attempt_superblock_creation(darksilkd)
