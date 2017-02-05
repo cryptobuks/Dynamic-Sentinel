@@ -11,6 +11,7 @@ default_sentinel_config = os.path.normpath(
 sentinel_config_file = os.environ.get('SENTINEL_CONFIG', default_sentinel_config)
 sentinel_cfg = DarkSilkConfig.tokenize(sentinel_config_file)
 
+
 def get_darksilk_conf():
     home = os.environ.get('HOME')
 
