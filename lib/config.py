@@ -5,8 +5,11 @@ import sys
 import os
 from darksilk_config import DarkSilkConfig
 
-sentinel_cfg = DarkSilkConfig.tokenize('sentinel.conf')
-
+default_sentinel_config = os.path.normpath(
+    os.path.join(os.path.dirname(__file__), '../sentinel.conf')
+)
+sentinel_config_file = os.environ.get('SENTINEL_CONFIG', default_sentinel_config)
+sentinel_cfg = DarkSilkConfig.tokenize(sentinel_config_file)
 
 def get_darksilk_conf():
     home = os.environ.get('HOME')
