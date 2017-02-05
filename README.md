@@ -2,6 +2,8 @@
 
 An all-powerful toolset for DarkSilk.
 
+[![Build Status](https://travis-ci.org/silknetwork/darksilk-sentinel.svg?branch=master)](https://travis-ci.org/silknetwork/darksilk-sentinel)
+
 Sentinel is an autonomous agent for persisting, processing and automating DarkSilk governance objects and tasks.
 
 Sentinel is implemented as a Python application that binds to a local version darksilkd instance on each DarkSilk Stormnode.
