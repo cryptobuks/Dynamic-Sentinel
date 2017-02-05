@@ -223,7 +223,7 @@ def test_proposal_is_deletable(proposal):
 def test_approved_and_ranked(go_list_proposals):
     from darksilkd import DarkSilkDaemon
     darksilkd = DarkSilkDaemon.from_darksilk_conf(config.darksilk_conf)
-    
+
     for item in go_list_proposals:
         (go, subobj) = GovernanceObject.import_gobject_from_darksilkd(darksilkd, item)
 
