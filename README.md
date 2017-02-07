@@ -2,7 +2,7 @@
 
 An all-powerful toolset for DarkSilk.
 
-[![Build Status](https://travis-ci.org/silknetwork/darksilk-sentinel.svg?branch=master)](https://travis-ci.org/silknetwork/darksilk-sentinel)
+[![Build Status](https://travis-ci.org/SilkNetwork/DarkSilk-Sentinel.svg?branch=master)](https://travis-ci.org/SilkNetwork/DarkSilk-Sentinel)
 
 Sentinel is an autonomous agent for persisting, processing and automating DarkSilk governance objects and tasks.
 
