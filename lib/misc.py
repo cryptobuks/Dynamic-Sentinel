@@ -27,6 +27,7 @@ def printdbg(str):
 
     sys.stdout.flush()
 
+
 def is_hash(s):
     m = re.match('^[a-f0-9]{64}$', s)
     return m is not None
