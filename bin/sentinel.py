@@ -140,6 +140,7 @@ def is_darksilkd_port_open(darksilkd):
 
     return port_open
 
+
 def main():
     darksilkd = DarkSilkDaemon.from_darksilk_conf(config.darksilk_conf)
     options = process_args()
