@@ -183,7 +183,6 @@ def main():
     # running now, so remove the scheduled event
     Scheduler.clear_schedule()
 
-
     # ========================================================================
     # general flow:
     # ========================================================================
@@ -223,6 +222,7 @@ def process_args():
     args = parser.parse_args()
 
     return args
+
 
 if __name__ == '__main__':
     atexit.register(cleanup)
