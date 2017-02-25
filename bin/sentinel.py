@@ -203,6 +203,7 @@ def main():
     # schedule the next run
     Scheduler.schedule_next_run()
 
+
 def signal_handler(signum, frame):
     print("Got a signal [%d], cleaning up..." % (signum))
     Transient.delete('SENTINEL_RUNNING')
@@ -211,6 +212,7 @@ def signal_handler(signum, frame):
 
 def cleanup():
     Transient.delete(mutex_key)
+
 
 def process_args():
     parser = argparse.ArgumentParser()
