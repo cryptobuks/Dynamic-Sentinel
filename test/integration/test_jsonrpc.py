@@ -21,7 +21,7 @@ def test_darksilkd():
         if line.startswith('testnet=1'):
             network = 'testnet'
             is_testnet = True
-            genesis_hash = u''
+            genesis_hash = u'000f5f5be1e3cbd87bfc3a7a154c29f6a74b1086ac74695c59e188df6b369fc0'
 
     creds = DarkSilkConfig.get_rpc_creds(config_text, network)
     darksilkd = DarkSilkDaemon(**creds)
