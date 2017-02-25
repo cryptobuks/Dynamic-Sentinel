@@ -16,12 +16,12 @@ def test_darksilkd():
     config_text = DarkSilkConfig.slurp_config_file(config.darksilk_conf)
     network = 'mainnet'
     is_testnet = False
-    genesis_hash = u'00002bf2d43a0aaeb5bdffe37516fcdf37b16921e6a094a38d6aa7c6109ca9be'
+    genesis_hash = u'0000fde3907194a0a6224ae29e069161e23cdff41a58f57c106a1e9e89ca1204'
     for line in config_text.split("\n"):
         if line.startswith('testnet=1'):
             network = 'testnet'
             is_testnet = True
-            genesis_hash = u'000d3939a4eacb52b654cb2d3776c820c0694f3fa8294921417c8baf55360808'
+            genesis_hash = u''
 
     creds = DarkSilkConfig.get_rpc_creds(config_text, network)
     darksilkd = DarkSilkDaemon(**creds)
