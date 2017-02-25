@@ -52,13 +52,13 @@ With all tests passing and crontab setup, Sentinel will stay in sync with darksi
   
 ### 4. Set up Cron
 
-Set up a crontab entry to call Sentinel regularly, recommended every 2 minutes, by first opening a crontab editor.
+Set up a crontab entry to call Sentinel every minute:
 
     $ crontab -e
 
 In the crontab editor, add the lines below, replacing '/home/YOURUSERNAME/sentinel' to the path where you cloned sentinel to:
 
-    */2 * * * * cd /home/YOURUSERNAME/darksilk-sentinel && ./venv/bin/python bin/sentinel.py >/dev/null 2>&1
+    * * * * * cd /home/YOURUSERNAME/sentinel && ./venv/bin/python bin/sentinel.py >/dev/null 2>&1
 
 ## Troubleshooting
 
