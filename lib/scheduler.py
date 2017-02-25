@@ -48,3 +48,4 @@ class Scheduler(object):
 
         printdbg("Delay of [%d] seconds for cron minute offset" % delay_in_seconds)
         time.sleep(delay_in_seconds)
+        
