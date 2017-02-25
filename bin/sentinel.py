@@ -15,6 +15,8 @@ from bitcoinrpc.authproxy import JSONRPCException
 import signal
 import atexit
 import random
+from scheduler import Scheduler
+import argparse
 
 
 # sync darksilkd gobject list with our local relational DB backend
@@ -25,6 +27,7 @@ def perform_darksilkd_object_sync(darksilkd):
 # delete old watchdog objects, create new when necessary
 def watchdog_check(darksilkd):
     printdbg("in watchdog_check")
+
     # delete expired watchdogs
     for wd in Watchdog.expired(darksilkd):
         printdbg("\tFound expired watchdog [%s], voting to delete" % wd.object_hash)
@@ -137,13 +140,9 @@ def is_darksilkd_port_open(darksilkd):
 
     return port_open
 
-def delay():
-    delay_in_seconds = random.randint(1, 50)
-    printdbg("Delay of [%d] seconds to prevent watchdog sync issues")
-    time.sleep(delay_in_seconds)
-
 def main():
     darksilkd = DarkSilkDaemon.from_darksilk_conf(config.darksilk_conf)
+    options = process_args()
 
     # check darksilkd connectivity
     if not is_darksilkd_port_open(darksilkd):
@@ -167,7 +166,22 @@ def main():
         logger.setLevel(logging.DEBUG)
         logger.addHandler(logging.StreamHandler())
 
-    delay()
+    if options.bypass:
+        # bypassing scheduler, remove the scheduled event
+        printdbg("--bypass-schedule option used, clearing schedule")
+        Scheduler.clear_schedule()
+
+    if not Scheduler.is_run_time():
+        printdbg("Not yet time for an object sync/vote, moving on.")
+        return
+
+    if not options.bypass:
+        # delay to account for cron minute sync
+        Scheduler.delay()
+
+    # running now, so remove the scheduled event
+    Scheduler.clear_schedule()
+
 
     # ========================================================================
     # general flow:
@@ -185,6 +199,8 @@ def main():
     # create a Superblock if necessary
     attempt_superblock_creation(darksilkd)
 
+    # schedule the next run
+    Scheduler.schedule_next_run()
 
 def signal_handler(signum, frame):
     print("Got a signal [%d], cleaning up..." % (signum))
@@ -195,6 +211,15 @@ def signal_handler(signum, frame):
 def cleanup():
     Transient.delete(mutex_key)
 
+def process_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-b', '--bypass-scheduler',
+                        action='store_true',
+                        help='Bypass scheduler and sync/vote immediately',
+                        dest='bypass')
+    args = parser.parse_args()
+
+    return args
 
 if __name__ == '__main__':
     atexit.register(cleanup)
