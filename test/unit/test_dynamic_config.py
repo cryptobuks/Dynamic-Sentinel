@@ -6,13 +6,13 @@ os.environ['SENTINEL_CONFIG'] = os.path.normpath(os.path.join(os.path.dirname(__
 os.environ['SENTINEL_ENV'] = 'test'
 sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '../../lib')))
 import config
-from darksilk_config import DarkSilkConfig
+from dynamic_config import DynamicConfig
 
 
 @pytest.fixture
-def darksilk_conf(**kwargs):
+def dynamic_conf(**kwargs):
     defaults = {
-        'rpcuser': 'darksilkrpc',
+        'rpcuser': 'dynamicrpc',
         'rpcpassword': 'EwJeV3fZTyTVozdECF627BkBMnNDwQaVLakG3A4wXYyk',
         'rpcport': 29241,
     }
@@ -34,35 +34,35 @@ rpcport={rpcport}
 
 
 def test_get_rpc_creds():
-    darksilk_config = darksilk_conf()
-    creds = DarkSilkConfig.get_rpc_creds(darksilk_config, 'testnet')
+    dynamic_config = dynamic_conf()
+    creds = DynamicConfig.get_rpc_creds(dynamic_config, 'testnet')
 
     for key in ('user', 'password', 'port'):
         assert key in creds
-    assert creds.get('user') == 'darksilkrpc'
+    assert creds.get('user') == 'dynamicrpc'
     assert creds.get('password') == 'EwJeV3fZTyTVozdECF627BkBMnNDwQaVLakG3A4wXYyk'
     assert creds.get('port') == 29241
 
-    darksilk_config = darksilk_conf(rpcpassword='s00pers33kr1t', rpcport=8000)
-    creds = DarkSilkConfig.get_rpc_creds(darksilk_config, 'testnet')
+    dynamic_config = dynamic_conf(rpcpassword='s00pers33kr1t', rpcport=8000)
+    creds = DynamicConfig.get_rpc_creds(dynamic_config, 'testnet')
 
     for key in ('user', 'password', 'port'):
         assert key in creds
-    assert creds.get('user') == 'darksilkrpc'
+    assert creds.get('user') == 'dynamicrpc'
     assert creds.get('password') == 's00pers33kr1t'
     assert creds.get('port') == 8000
 
-    no_port_specified = re.sub('\nrpcport=.*?\n', '\n', darksilk_conf(), re.M)
-    creds = DarkSilkConfig.get_rpc_creds(no_port_specified, 'testnet')
+    no_port_specified = re.sub('\nrpcport=.*?\n', '\n', dynamic_conf(), re.M)
+    creds = DynamicConfig.get_rpc_creds(no_port_specified, 'testnet')
 
     for key in ('user', 'password', 'port'):
         assert key in creds
-    assert creds.get('user') == 'darksilkrpc'
+    assert creds.get('user') == 'dynamicrpc'
     assert creds.get('password') == 'EwJeV3fZTyTVozdECF627BkBMnNDwQaVLakG3A4wXYyk'
     assert creds.get('port') == 31750
 
 
-# ensure darksilk network (mainnet, testnet) matches that specified in config
-# requires running darksilkd on whatever port specified...
+# ensure dynamic network (mainnet, testnet) matches that specified in config
+# requires running dynamicd on whatever port specified...
 #
-# This is more of a darksilkd/jsonrpc test than a config test...
+# This is more of a dynamicd/jsonrpc test than a config test...

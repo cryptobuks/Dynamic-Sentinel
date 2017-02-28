@@ -123,8 +123,8 @@ def superblock():
 
 
 def test_superblock_is_valid(superblock):
-    from darksilkd import DarkSilkDaemon
-    darksilkd = DarkSilkDaemon.from_darksilk_conf(config.darksilk_conf)
+    from dynamicd import DynamicDaemon
+    dynamicd = DynamicDaemon.from_dynamic_conf(config.dynamic_conf)
 
     orig = Superblock(**superblock.get_dict())  # make a copy
 
@@ -211,16 +211,16 @@ def test_serialisable_fields():
 
 
 def test_deterministic_superblock_creation(go_list_proposals):
-    import darksilklib
+    import dynamiclib
     import misc
-    from darksilkd import DarkSilkDaemon
-    darksilkd = DarkSilkDaemon.from_darksilk_conf(config.darksilk_conf)
+    from dynamicd import DynamicDaemon
+    dynamicd = DynamicDaemon.from_dynamic_conf(config.dynamic_conf)
     for item in go_list_proposals:
-        (go, subobj) = GovernanceObject.import_gobject_from_darksilkd(darksilkd, item)
+        (go, subobj) = GovernanceObject.import_gobject_from_dynamicd(dynamicd, item)
 
     max_budget = 60
     prop_list = Proposal.approved_and_ranked(proposal_quorum=1, next_superblock_max_budget=max_budget)
-    sb = darksilklib.create_superblock(prop_list, 72000, budget_max=max_budget, sb_epoch_time=misc.now())
+    sb = dynamiclib.create_superblock(prop_list, 72000, budget_max=max_budget, sb_epoch_time=misc.now())
 
 #    assert sb.event_block_height == 72000
 #    assert sb.payment_addresses == 'yYe8KwyaUu5YswSYmB3q3ryx8XTUu9y7Ui|yTC62huR4YQEPn9AJHjnQxxreHSbgAoatV'
@@ -231,11 +231,11 @@ def test_deterministic_superblock_creation(go_list_proposals):
 
 
 def test_deterministic_superblock_selection(go_list_superblocks):
-    from darksilkd import DarkSilkDaemon
-    darksilkd = DarkSilkDaemon.from_darksilk_conf(config.darksilk_conf)
+    from dynamicd import DynamicDaemon
+    dynamicd = DynamicDaemon.from_dynamic_conf(config.dynamic_conf)
 
     for item in go_list_superblocks:
-        (go, subobj) = GovernanceObject.import_gobject_from_darksilkd(darksilkd, item)
+        (go, subobj) = GovernanceObject.import_gobject_from_dynamicd(dynamicd, item)
 
     # highest hash wins if same -- so just order by hash
     sb = Superblock.find_highest_deterministic('22a5f429c5ffb2b79b1b30c3ac30751284e3efa4e710bc7fd35fbe7456b1e485')

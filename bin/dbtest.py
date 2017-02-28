@@ -9,10 +9,10 @@ import config
 from models import Superblock, Proposal, GovernanceObject, Setting, Signal, Vote, Outcome, Watchdog
 from models import VoteSignals, VoteOutcomes
 from peewee import PeeweeException  # , OperationalError, IntegrityError
-from darksilkd import DarkSilkDaemon
-import darksilklib
+from dynamicd import DynamicDaemon
+import dynamiclib
 from decimal import Decimal
-darksilkd = DarkSilkDaemon.from_darksilk_conf(config.darksilk_conf)
+dynamicd = DynamicDaemon.from_dynamic_conf(config.dynamic_conf)
 import misc
 # ==============================================================================
 # do stuff here
@@ -33,13 +33,13 @@ pr = Proposal(
 # )
 
 
-# TODO: make this a test, mock 'darksilkd' and tie a test block height to a
+# TODO: make this a test, mock 'dynamicd' and tie a test block height to a
 # timestamp, ensure only unit testing a within_window method
 #
 # also, create the `within_window` or similar method & use that.
 #
 bh = 131112
-bh_epoch = darksilkd.block_height_to_epoch(bh)
+bh_epoch = dynamicd.block_height_to_epoch(bh)
 
 fudge = 72000
 window_start = 1483689082 - fudge
@@ -56,7 +56,7 @@ else:
     print("Within window, we're good!")
 
 # pdb.set_trace()
-# darksilkd.get_object_list()
+# dynamicd.get_object_list()
 # ==============================================================================
 # pdb.set_trace()
 1

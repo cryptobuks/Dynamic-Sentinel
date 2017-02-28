@@ -5,7 +5,7 @@ sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '../lib
 import init
 import config
 import misc
-from darksilkd import DarkSilkDaemon
+from dynamicd import DynamicDaemon
 from models import Superblock, Proposal, GovernanceObject, Watchdog
 from models import VoteSignals, VoteOutcomes, Transient
 import socket
@@ -19,22 +19,22 @@ from scheduler import Scheduler
 import argparse
 
 
-# sync darksilkd gobject list with our local relational DB backend
-def perform_darksilkd_object_sync(darksilkd):
-    GovernanceObject.sync(darksilkd)
+# sync dynamicd gobject list with our local relational DB backend
+def perform_dynamicd_object_sync(dynamicd):
+    GovernanceObject.sync(dynamicd)
 
 
 # delete old watchdog objects, create new when necessary
-def watchdog_check(darksilkd):
+def watchdog_check(dynamicd):
     printdbg("in watchdog_check")
 
     # delete expired watchdogs
-    for wd in Watchdog.expired(darksilkd):
+    for wd in Watchdog.expired(dynamicd):
         printdbg("\tFound expired watchdog [%s], voting to delete" % wd.object_hash)
-        wd.vote(darksilkd, VoteSignals.delete, VoteOutcomes.yes)
+        wd.vote(dynamicd, VoteSignals.delete, VoteOutcomes.yes)
 
     # now, get all the active ones...
-    active_wd = Watchdog.active(darksilkd)
+    active_wd = Watchdog.active(dynamicd)
     active_count = active_wd.count()
 
     # none exist, submit a new one to the network
@@ -42,7 +42,7 @@ def watchdog_check(darksilkd):
         # create/submit one
         printdbg("\tNo watchdogs exist... submitting new one.")
         wd = Watchdog(created_at=int(time.time()))
-        wd.submit(darksilkd)
+        wd.submit(dynamicd)
 
     else:
         wd_list = sorted(active_wd, key=lambda wd: wd.object_hash)
@@ -50,31 +50,31 @@ def watchdog_check(darksilkd):
         # highest hash wins
         winner = wd_list.pop()
         printdbg("\tFound winning watchdog [%s], voting VALID" % winner.object_hash)
-        winner.vote(darksilkd, VoteSignals.valid, VoteOutcomes.yes)
+        winner.vote(dynamicd, VoteSignals.valid, VoteOutcomes.yes)
 
         # if remaining Watchdogs exist in the list, vote delete
         for wd in wd_list:
             printdbg("\tFound losing watchdog [%s], voting DELETE" % wd.object_hash)
-            wd.vote(darksilkd, VoteSignals.delete, VoteOutcomes.yes)
+            wd.vote(dynamicd, VoteSignals.delete, VoteOutcomes.yes)
 
     printdbg("leaving watchdog_check")
 
 
-def attempt_superblock_creation(darksilkd):
-    import darksilklib
+def attempt_superblock_creation(dynamicd):
+    import dynamiclib
 
-    if not darksilkd.is_stormnode():
-        print("We are not a Stormnode... can't submit superblocks!")
+    if not dynamicd.is_dynode():
+        print("We are not a Dynode... can't submit superblocks!")
         return
 
     # query votes for this specific ebh... if we have voted for this specific
     # ebh, then it's voted on. since we track votes this is all done using joins
     # against the votes table
     #
-    # has this stormnode voted on *any* superblocks at the given event_block_height?
+    # has this dynode voted on *any* superblocks at the given event_block_height?
     # have we voted FUNDING=YES for a superblock for this specific event_block_height?
 
-    event_block_height = darksilkd.next_superblock_height()
+    event_block_height = dynamicd.next_superblock_height()
 
     if Superblock.is_voted_funding(event_block_height):
         # printdbg("ALREADY VOTED! 'til next time!")
@@ -82,20 +82,20 @@ def attempt_superblock_creation(darksilkd):
         # vote down any new SBs because we've already chosen a winner
         for sb in Superblock.at_height(event_block_height):
             if not sb.voted_on(signal=VoteSignals.funding):
-                sb.vote(darksilkd, VoteSignals.funding, VoteOutcomes.no)
+                sb.vote(dynamicd, VoteSignals.funding, VoteOutcomes.no)
 
         # now return, we're done
         return
 
-    if not darksilkd.is_govobj_maturity_phase():
+    if not dynamicd.is_govobj_maturity_phase():
         printdbg("Not in maturity phase yet -- will not attempt Superblock")
         return
 
-    proposals = Proposal.approved_and_ranked(proposal_quorum=darksilkd.governance_quorum(), next_superblock_max_budget=darksilkd.next_superblock_max_budget())
-    budget_max = darksilkd.get_superblock_budget_allocation(event_block_height)
-    sb_epoch_time = darksilkd.block_height_to_epoch(event_block_height)
+    proposals = Proposal.approved_and_ranked(proposal_quorum=dynamicd.governance_quorum(), next_superblock_max_budget=dynamicd.next_superblock_max_budget())
+    budget_max = dynamicd.get_superblock_budget_allocation(event_block_height)
+    sb_epoch_time = dynamicd.block_height_to_epoch(event_block_height)
 
-    sb = darksilklib.create_superblock(proposals, event_block_height, budget_max, sb_epoch_time)
+    sb = dynamiclib.create_superblock(proposals, event_block_height, budget_max, sb_epoch_time)
     if not sb:
         printdbg("No superblock created, sorry. Returning.")
         return
@@ -103,37 +103,37 @@ def attempt_superblock_creation(darksilkd):
     # find the deterministic SB w/highest object_hash in the DB
     dbrec = Superblock.find_highest_deterministic(sb.hex_hash())
     if dbrec:
-        dbrec.vote(darksilkd, VoteSignals.funding, VoteOutcomes.yes)
+        dbrec.vote(dynamicd, VoteSignals.funding, VoteOutcomes.yes)
 
         # any other blocks which match the sb_hash are duplicates, delete them
         for sb in Superblock.select().where(Superblock.sb_hash == sb.hex_hash()):
             if not sb.voted_on(signal=VoteSignals.funding):
-                sb.vote(darksilkd, VoteSignals.delete, VoteOutcomes.yes)
+                sb.vote(dynamicd, VoteSignals.delete, VoteOutcomes.yes)
 
         printdbg("VOTED FUNDING FOR SB! We're done here 'til next superblock cycle.")
         return
     else:
         printdbg("The correct superblock wasn't found on the network...")
 
-    # if we are the elected stormnode...
-    if (darksilkd.we_are_the_winner()):
+    # if we are the elected dynode...
+    if (dynamicd.we_are_the_winner()):
         printdbg("we are the winner! Submit SB to network")
-        sb.submit(darksilkd)
+        sb.submit(dynamicd)
 
 
-def check_object_validity(darksilkd):
+def check_object_validity(dynamicd):
     # vote (in)valid objects
     for gov_class in [Proposal, Superblock]:
         for obj in gov_class.select():
-            obj.vote_validity(darksilkd)
+            obj.vote_validity(dynamicd)
 
 
-def is_darksilkd_port_open(darksilkd):
+def is_dynamicd_port_open(dynamicd):
     # test socket open before beginning, display instructive message to SN
     # operators if it's not
     port_open = False
     try:
-        info = darksilkd.rpc_command('getinfo')
+        info = dynamicd.rpc_command('getinfo')
         port_open = True
     except (socket.error, JSONRPCException) as e:
         print("%s" % e)
@@ -142,22 +142,22 @@ def is_darksilkd_port_open(darksilkd):
 
 
 def main():
-    darksilkd = DarkSilkDaemon.from_darksilk_conf(config.darksilk_conf)
+    dynamicd = DynamicDaemon.from_dynamic_conf(config.dynamic_conf)
     options = process_args()
 
-    # check darksilkd connectivity
-    if not is_darksilkd_port_open(darksilkd):
-        print("Cannot connect to darksilkd. Please ensure darksilkd is running and the JSONRPC port is open to Sentinel.")
+    # check dynamicd connectivity
+    if not is_dynamicd_port_open(dynamicd):
+        print("Cannot connect to dynamicd. Please ensure dynamicd is running and the JSONRPC port is open to Sentinel.")
         return
 
-    # check darksilkd sync
-    if not darksilkd.is_synced():
-        print("darksilkd not synced with network! Awaiting full sync before running Sentinel.")
+    # check dynamicd sync
+    if not dynamicd.is_synced():
+        print("dynamicd not synced with network! Awaiting full sync before running Sentinel.")
         return
 
-    # ensure valid stormnode
-    if not darksilkd.is_stormnode():
-        print("Invalid Stormnode Status, cannot continue.")
+    # ensure valid dynode
+    if not dynamicd.is_dynode():
+        print("Invalid Dynode Status, cannot continue.")
         return
 
     # register a handler if SENTINEL_DEBUG is set
@@ -188,16 +188,16 @@ def main():
     # ========================================================================
     #
     # load "gobject list" rpc command data, sync objects into internal database
-    perform_darksilkd_object_sync(darksilkd)
+    perform_dynamicd_object_sync(dynamicd)
 
     # delete old watchdog objects, create a new if necessary
-    watchdog_check(darksilkd)
+    watchdog_check(dynamicd)
 
     # auto vote network objects as valid/invalid
-    # check_object_validity(darksilkd)
+    # check_object_validity(dynamicd)
 
     # create a Superblock if necessary
-    attempt_superblock_creation(darksilkd)
+    attempt_superblock_creation(dynamicd)
 
     # schedule the next run
     Scheduler.schedule_next_run()

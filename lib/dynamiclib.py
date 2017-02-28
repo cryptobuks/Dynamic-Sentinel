@@ -12,14 +12,14 @@ from misc import printdbg, epoch2str
 import time
 
 
-def is_valid_darksilk_address(address, network='mainnet'):
+def is_valid_dynamic_address(address, network='mainnet'):
     # Only public key addresses are allowed
     # A valid address is a RIPEMD-160 hash which contains 20 bytes
     # Prior to base58 encoding 1 version byte is prepended and
     # 4 checksum bytes are appended so the total number of
     # base58 encoded bytes should be 25.  This means the number of characters
     # in the encoding should be about 34 ( 25 * log2( 256 ) / log2( 58 ) ).
-    darksilk_version = 140 if network == 'testnet' else 76
+    dynamic_version = 140 if network == 'testnet' else 76
 
     # Check length (This is important because the base58 library has problems
     # with long addresses (which are invalid anyway).
@@ -32,10 +32,10 @@ def is_valid_darksilk_address(address, network='mainnet'):
         decoded = base58.b58decode_chk(address)
         address_version = ord(decoded[0:1])
     except:
-        # rescue from exception, not a valid DarkSilk address
+        # rescue from exception, not a valid Dynamic address
         return False
 
-    if (address_version != darksilk_version):
+    if (address_version != dynamic_version):
         return False
 
     return True
@@ -45,22 +45,22 @@ def hashit(data):
     return int(hashlib.sha256(data.encode('utf-8')).hexdigest(), 16)
 
 
-# returns the stormnode VIN of the elected winner
-def elect_sn(**kwargs):
+# returns the dynode VIN of the elected winner
+def elect_dn(**kwargs):
     current_block_hash = kwargs['block_hash']
-    sn_list = kwargs['snlist']
+    dn_list = kwargs['dnlist']
 
-    # filter only enabled SNs
-    enabled = [sn for sn in sn_list if sn.status == 'ENABLED']
+    # filter only enabled DNs
+    enabled = [dn for dn in dn_list if dn.status == 'ENABLED']
 
     block_hash_hash = hashit(current_block_hash)
 
     candidates = []
-    for sn in enabled:
-        sn_vin_hash = hashit(sn.vin)
-        diff = sn_vin_hash - block_hash_hash
+    for dn in enabled:
+        dn_vin_hash = hashit(dn.vin)
+        diff = dn_vin_hash - block_hash_hash
         absdiff = abs(diff)
-        candidates.append({'vin': sn.vin, 'diff': absdiff})
+        candidates.append({'vin': dn.vin, 'diff': absdiff})
 
     candidates.sort(key=lambda k: k['diff'])
 
@@ -72,7 +72,7 @@ def elect_sn(**kwargs):
     return winner
 
 
-def parse_stormnode_status_vin(status_vin_string):
+def parse_dynode_status_vin(status_vin_string):
     status_vin_string_regex = re.compile('CTxIn\(COutPoint\(([0-9a-zA-Z]+),\\s*(\d+)\),')
 
     m = status_vin_string_regex.match(status_vin_string)
@@ -172,45 +172,45 @@ def create_superblock(proposals, event_block_height, budget_max, sb_epoch_time):
     return sb
 
 
-# shims 'til we can fix the darksilkd side
-def SHIM_serialise_for_darksilkd(sentinel_hex):
-    from models import DARKSILKD_GOVOBJ_TYPES
+# shims 'til we can fix the dynamicd side
+def SHIM_serialise_for_dynamicd(sentinel_hex):
+    from models import DYNAMICD_GOVOBJ_TYPES
     # unpack
     obj = deserialise(sentinel_hex)
 
-    # shim for darksilkd
+    # shim for dynamicd
     govtype = obj[0]
 
     # add 'type' attribute
-    obj[1]['type'] = DARKSILKD_GOVOBJ_TYPES[govtype]
+    obj[1]['type'] = DYNAMICD_GOVOBJ_TYPES[govtype]
 
-    # superblock => "trigger" in darksilkd
+    # superblock => "trigger" in dynamicd
     if govtype == 'superblock':
         obj[0] = 'trigger'
 
-    # darksilkd expects an array (even though there is only a 1:1 relationship between govobj->class)
+    # dynamicd expects an array (even though there is only a 1:1 relationship between govobj->class)
     obj = [obj]
 
     # re-pack
-    darksilkd_hex = serialise(obj)
-    return darksilkd_hex
+    dynamicd_hex = serialise(obj)
+    return dynamicd_hex
 
 
-# shims 'til we can fix the darksilkd side
-def SHIM_deserialise_from_darksilkd(darksilkd_hex):
-    from models import DARKSILKD_GOVOBJ_TYPES
+# shims 'til we can fix the dynamicd side
+def SHIM_deserialise_from_dynamicd(dynamicd_hex):
+    from models import DYNAMICD_GOVOBJ_TYPES
 
     # unpack
-    obj = deserialise(darksilkd_hex)
+    obj = deserialise(dynamicd_hex)
 
-    # shim from darksilkd
+    # shim from dynamicd
     # only one element in the array...
     obj = obj[0]
 
     # extract the govobj type
     govtype = obj[0]
 
-    # superblock => "trigger" in darksilkd
+    # superblock => "trigger" in dynamicd
     if govtype == 'trigger':
         obj[0] = govtype = 'superblock'
 
@@ -244,7 +244,7 @@ def did_we_vote(output):
     err_msg = ''
 
     try:
-        detail = output.get('detail').get('darksilk.conf')
+        detail = output.get('detail').get('dynamic.conf')
         result = detail.get('result')
         if 'errorMessage' in detail:
             err_msg = detail.get('errorMessage')
@@ -264,7 +264,7 @@ def did_we_vote(output):
     # in case we spin up a new instance or server, but have already voted
     # on the network and network has recorded those votes
     m_old = re.match(r'^time between votes is too soon', err_msg)
-    m_new = re.search(r'Stormnode voting too often', err_msg, re.M)
+    m_new = re.search(r'Dynode voting too often', err_msg, re.M)
 
     if result == 'failed' and (m_old or m_new):
         printdbg("DEBUG: Voting too often, need to sync w/network")
@@ -280,9 +280,9 @@ def parse_raw_votes(raw_votes):
         signal = signal.lower()
         outcome = outcome.lower()
 
-        sn_collateral_outpoint = parse_stormnode_status_vin(outpoint)
+        dn_collateral_outpoint = parse_dynode_status_vin(outpoint)
         v = {
-            'sn_collateral_outpoint': sn_collateral_outpoint,
+            'dn_collateral_outpoint': dn_collateral_outpoint,
             'signal': signal,
             'outcome': outcome,
             'ntime': ntime,

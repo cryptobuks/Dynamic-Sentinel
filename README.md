@@ -1,14 +1,14 @@
-# **DarkSilk Sentinel**
+# **Dynamic Sentinel**
 
-An all-powerful toolset for DarkSilk.
+An all-powerful toolset for Dynamic.
 
-[![Build Status](https://travis-ci.org/SilkNetwork/DarkSilk-Sentinel.svg?branch=master)](https://travis-ci.org/SilkNetwork/DarkSilk-Sentinel)
+[![Build Status](https://travis-ci.org/SilkNetwork/Dynamic-Sentinel.svg?branch=master)](https://travis-ci.org/SilkNetwork/Dynamic-Sentinel)
 
-Sentinel is an autonomous agent for persisting, processing and automating DarkSilk governance objects and tasks.
+Sentinel is an autonomous agent for persisting, processing and automating Dynamic governance objects and tasks.
 
-Sentinel is implemented as a Python application that binds to a local version darksilkd instance on each DarkSilk Stormnode.
+Sentinel is implemented as a Python application that binds to a local version dynamicd instance on each Dynamic Dynode.
 
-This guide covers installing Sentinel onto an existing Stormnode in Ubuntu 14.04 / 16.04.
+This guide covers installing Sentinel onto an existing Dynode in Ubuntu 14.04 / 16.04.
 
 ## Installation
 
@@ -23,24 +23,24 @@ Update system packages and ensure virtualenv is installed:
     $ sudo apt-get update
     $ sudo apt-get -y install python-virtualenv
 
-Make sure the local DarkSilk daemon running
+Make sure the local Dynamic daemon running
 
-    $ ./darksilk-cli getinfo | grep version
+    $ ./dynamic-cli getinfo | grep version
 
 ### 2. Install Sentinel
 
 Clone the Sentinel repo and install Python dependencies.
 
-    $ git clone https://github.com/silknetwork/darksilk-sentinel.git && cd darksilk-sentinel
+    $ git clone https://github.com/silknetwork/dynamic-sentinel.git && cd dynamic-sentinel
     $ virtualenv ./venv
     $ ./venv/bin/pip install -r requirements.txt
 
 
 ### 3. Configuration
 
-An alternative (non-default) path to the `darksilk.conf` file can be specified in `sentinel.conf`:
+An alternative (non-default) path to the `dynamic.conf` file can be specified in `sentinel.conf`:
 
-    darksilk_conf=/path/to/darksilk.conf
+    dynamic_conf=/path/to/dynamic.conf
     
 ## Test the Configuration
 
@@ -48,7 +48,7 @@ Test the config by runnings all tests from the sentinel folder you cloned into
 
     $ ./venv/bin/py.test ./test
 
-With all tests passing and crontab setup, Sentinel will stay in sync with darksilkd and the installation is complete
+With all tests passing and crontab setup, Sentinel will stay in sync with dynamicd and the installation is complete
   
 ### 4. Set up Cron
 
@@ -68,11 +68,11 @@ To view debug output, set the `SENTINEL_DEBUG` environment variable to anything 
 
 ## Contributing
 
-Please follow the [DarkSilk guidelines for contributing](https://github.com/silknetwork/darksilk-core/blob/master/CONTRIBUTING.md).
+Please follow the [Dynamic guidelines for contributing](https://github.com/silknetwork/dynamic-core/blob/master/CONTRIBUTING.md).
 
 Specifically:
 
-* [Contributor Workflow](https://github.com/silknetwork/darksilk-core/blob/master/CONTRIBUTING.md#contributor-workflow)
+* [Contributor Workflow](https://github.com/silknetwork/dynamic-core/blob/master/CONTRIBUTING.md#contributor-workflow)
 
     To contribute a patch, the workflow is as follows:
 
@@ -86,4 +86,4 @@ Specifically:
 
 ### License
 
-Released under the MIT license, under the same terms as DarkSilk Core itself. See [LICENSE](LICENSE) for more info.
+Released under the MIT license, under the same terms as Dynamic Core itself. See [LICENSE](LICENSE) for more info.

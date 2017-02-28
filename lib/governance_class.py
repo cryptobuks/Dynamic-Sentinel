@@ -11,7 +11,7 @@ import time
 
 # mixin for GovObj composed classes like proposal and superblock, etc.
 class GovernanceClass(object):
-    only_stormnode_can_submit = False
+    only_dynode_can_submit = False
 
     # lazy
     @property
@@ -19,26 +19,26 @@ class GovernanceClass(object):
         return self.governance_object
 
     # pass thru to GovernanceObject#vote
-    def vote(self, darksilkd, signal, outcome):
-        return self.go.vote(darksilkd, signal, outcome)
+    def vote(self, dynamicd, signal, outcome):
+        return self.go.vote(dynamicd, signal, outcome)
 
     # pass thru to GovernanceObject#voted_on
     def voted_on(self, **kwargs):
         return self.go.voted_on(**kwargs)
 
-    def vote_validity(self, darksilkd):
+    def vote_validity(self, dynamicd):
         if self.is_valid():
             printdbg("Voting valid! %s: %d" % (self.__class__.__name__, self.id))
-            self.vote(darksilkd, models.VoteSignals.valid, models.VoteOutcomes.yes)
+            self.vote(dynamicd, models.VoteSignals.valid, models.VoteOutcomes.yes)
         else:
             printdbg("Voting INVALID! %s: %d" % (self.__class__.__name__, self.id))
-            self.vote(darksilkd, models.VoteSignals.valid, models.VoteOutcomes.no)
+            self.vote(dynamicd, models.VoteSignals.valid, models.VoteOutcomes.no)
 
     def get_submit_command(self):
         object_fee_tx = self.go.object_fee_tx
 
-        import darksilklib
-        obj_data = darksilklib.SHIM_serialise_for_darksilkd(self.serialise())
+        import dynamiclib
+        obj_data = dynamiclib.SHIM_serialise_for_dynamicd(self.serialise())
 
         cmd = ['gobject', 'submit', '0', '1', str(int(time.time())), obj_data, object_fee_tx]
 
@@ -55,31 +55,31 @@ class GovernanceClass(object):
             "AbstainCount": self.go.abstain_count,
         }
 
-        # return a dict similar to darksilkd "gobject list" output
+        # return a dict similar to dynamicd "gobject list" output
         return {self.object_hash: dikt}
 
     def get_submit_command(self):
-        import darksilklib
-        obj_data = darksilklib.SHIM_serialise_for_darksilkd(self.serialise())
+        import dynamiclib
+        obj_data = dynamiclib.SHIM_serialise_for_dynamicd(self.serialise())
 
         # new objects won't have parent_hash, revision, etc...
         cmd = ['gobject', 'submit', '0', '1', str(int(time.time())), obj_data]
 
         # some objects don't have a collateral tx to submit
-        if not self.only_stormnode_can_submit:
+        if not self.only_dynode_can_submit:
             cmd.append(go.object_fee_tx)
 
         return cmd
 
-    def submit(self, darksilkd):
-        # don't attempt to submit a superblock unless a stormnode
+    def submit(self, dynamicd):
+        # don't attempt to submit a superblock unless a dynode
         # note: will probably re-factor this, this has code smell
-        if (self.only_stormnode_can_submit and not darksilkd.is_stormnode()):
-            print("Not a stormnode. Only stormnodes may submit these objects")
+        if (self.only_dynode_can_submit and not dynamicd.is_dynode()):
+            print("Not a dynode. Only dynodes may submit these objects")
             return
 
         try:
-            object_hash = darksilkd.rpc_command(*self.get_submit_command())
+            object_hash = dynamicd.rpc_command(*self.get_submit_command())
             printdbg("Submitted: [%s]" % object_hash)
         except JSONRPCException as e:
             print("Unable to submit: %s" % e.message)
@@ -95,9 +95,9 @@ class GovernanceClass(object):
 
         return binascii.hexlify(simplejson.dumps((obj_type, self.get_dict()), sort_keys=True).encode('utf-8')).decode('utf-8')
 
-    def darksilkd_serialise(self):
-        import darksilklib
-        return darksilklib.SHIM_serialise_for_darksilkd(self.serialise())
+    def dynamicd_serialise(self):
+        import dynamiclib
+        return dynamiclib.SHIM_serialise_for_dynamicd(self.serialise())
 
     @classmethod
     def serialisable_fields(self):

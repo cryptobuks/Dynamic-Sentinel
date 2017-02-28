@@ -1,14 +1,14 @@
-# basically just parse & make it easier to access the SN data from the output of
-# "stormnodelist full"
+# basically just parse & make it easier to access the DN data from the output of
+# "dynodelist full"
 
 
-class Stormnode():
-    def __init__(self, collateral, snstring):
+class Dynode():
+    def __init__(self, collateral, dnstring):
         (txid, vout_index) = self.parse_collateral_string(collateral)
         self.txid = txid
         self.vout_index = int(vout_index)
 
-        (status, protocol, address, ip_port, lastseen, activeseconds, lastpaid) = self.parse_sn_string(snstring)
+        (status, protocol, address, ip_port, lastseen, activeseconds, lastpaid) = self.parse_dn_string(dnstring)
         self.status = status
         self.protocol = int(protocol)
         self.address = address
@@ -26,12 +26,12 @@ class Stormnode():
         return (txid, index)
 
     @classmethod
-    def parse_sn_string(self, sn_full_out):
+    def parse_dn_string(self, dn_full_out):
         # trim whitespace
-        # sn_full_out = sn_full_out.strip()
+        # dn_full_out = dn_full_out.strip()
 
         (status, protocol, address, lastseen, activeseconds, lastpaid,
-         lastpaidblock, ip_port) = sn_full_out.split()
+         lastpaidblock, ip_port) = dn_full_out.split()
 
         # status protocol pubkey IP lastseen activeseconds lastpaid
         return (status, protocol, address, ip_port, lastseen, activeseconds, lastpaid)

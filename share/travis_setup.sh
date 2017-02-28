@@ -1,9 +1,9 @@
 #!/bin/bash
 set -evx
 
-mkdir ~/.darksilk
+mkdir ~/.dynamic
 
 # safety check
-if [ ! -f ~/.darksilk/.darksilk.conf ]; then
-  cp share/darksilk.conf.example ~/.darksilk/darksilk.conf
+if [ ! -f ~/.dynamic/.dynamic.conf ]; then
+  cp share/dynamic.conf.example ~/.dynamic/dynamic.conf
 fi

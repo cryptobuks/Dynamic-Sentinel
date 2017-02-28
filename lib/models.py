@@ -12,7 +12,7 @@ from peewee import IntegerField, CharField, TextField, ForeignKeyField, DecimalF
 import peewee
 import playhouse.signals
 import misc
-import darksilkd
+import dynamicd
 from misc import printdbg
 import config
 from bitcoinrpc.authproxy import JSONRPCException
@@ -29,7 +29,7 @@ db.connect()
 
 
 # TODO: lookup table?
-DARKSILKD_GOVOBJ_TYPES = {
+DYNAMICD_GOVOBJ_TYPES = {
     'proposal': 1,
     'superblock': 2,
     'watchdog': 3,
@@ -72,10 +72,10 @@ class GovernanceObject(BaseModel):
     class Meta:
         db_table = 'governance_objects'
 
-    # sync darksilkd gobject list with our local relational DB backend
+    # sync dynamicd gobject list with our local relational DB backend
     @classmethod
-    def sync(self, darksilkd):
-        golist = darksilkd.rpc_command('gobject', 'list')
+    def sync(self, dynamicd):
+        golist = dynamicd.rpc_command('gobject', 'list')
 
         # objects which are removed from the network should be removed from the DB
         try:
@@ -84,7 +84,7 @@ class GovernanceObject(BaseModel):
                 purged.delete_instance(recursive=True, delete_nullable=True)
 
             for item in golist.values():
-                (go, subobj) = self.import_gobject_from_darksilkd(darksilkd, item)
+                (go, subobj) = self.import_gobject_from_dynamicd(dynamicd, item)
         except (peewee.InternalError, peewee.OperationalError, peewee.ProgrammingError) as e:
             printdbg("Got an error upon import: %s" % e)
 
@@ -96,8 +96,8 @@ class GovernanceObject(BaseModel):
         return query
 
     @classmethod
-    def import_gobject_from_darksilkd(self, darksilkd, rec):
-        import darksilklib
+    def import_gobject_from_dynamicd(self, dynamicd, rec):
+        import dynamiclib
         import inflection
 
         object_hex = rec['DataHex']
@@ -112,9 +112,9 @@ class GovernanceObject(BaseModel):
             'no_count': rec['NoCount'],
         }
 
-        # shim/darksilkd conversion
-        object_hex = darksilklib.SHIM_deserialise_from_darksilkd(object_hex)
-        objects = darksilklib.deserialise(object_hex)
+        # shim/dynamicd conversion
+        object_hex = dynamiclib.SHIM_deserialise_from_dynamicd(object_hex)
+        objects = dynamiclib.deserialise(object_hex)
         subobj = None
 
         obj_type, dikt = objects[0:2:1]
@@ -124,11 +124,11 @@ class GovernanceObject(BaseModel):
         # set object_type in govobj table
         gobj_dict['object_type'] = subclass.govobj_type
 
-        # exclude any invalid model data from darksilkd...
+        # exclude any invalid model data from dynamicd...
         valid_keys = subclass.serialisable_fields()
         subdikt = {k: dikt[k] for k in valid_keys if k in dikt}
 
-        # get/create, then sync vote counts from darksilkd, with every run
+        # get/create, then sync vote counts from dynamicd, with every run
         govobj, created = self.get_or_create(object_hash=object_hash, defaults=gobj_dict)
         if created:
             printdbg("govobj created = %s" % created)
@@ -137,14 +137,14 @@ class GovernanceObject(BaseModel):
             printdbg("govobj updated = %d" % count)
         subdikt['governance_object'] = govobj
 
-        # get/create, then sync payment amounts, etc. from darksilkd - DarkSilkd is the master
+        # get/create, then sync payment amounts, etc. from dynamicd - Dynamicd is the master
         try:
             subobj, created = subclass.get_or_create(object_hash=object_hash, defaults=subdikt)
         except (peewee.OperationalError, peewee.IntegrityError) as e:
             # in this case, vote as delete, and log the vote in the DB
-            printdbg("Got invalid object from darksilkd! %s" % e)
+            printdbg("Got invalid object from dynamicd! %s" % e)
             if not govobj.voted_on(signal=VoteSignals.delete, outcome=VoteOutcomes.yes):
-                govobj.vote(darksilkd, VoteSignals.delete, VoteOutcomes.yes)
+                govobj.vote(dynamicd, VoteSignals.delete, VoteOutcomes.yes)
             return (govobj, None)
 
         if created:
@@ -161,8 +161,8 @@ class GovernanceObject(BaseModel):
                signal.name, outcome.name]
         return cmd
 
-    def vote(self, darksilkd, signal, outcome):
-        import darksilklib
+    def vote(self, dynamicd, signal, outcome):
+        import dynamiclib
 
         # At this point, will probably never reach here. But doesn't hurt to
         # have an extra check just in case objects get out of sync (people will
@@ -192,10 +192,10 @@ class GovernanceObject(BaseModel):
 
         vote_command = self.get_vote_command(signal, outcome)
         printdbg(' '.join(vote_command))
-        output = darksilkd.rpc_command(*vote_command)
+        output = dynamicd.rpc_command(*vote_command)
 
         # extract vote output parsing to external lib
-        voted = darksilklib.did_we_vote(output)
+        voted = dynamiclib.did_we_vote(output)
 
         if voted:
             printdbg('VOTE success, saving Vote object to database')
@@ -203,11 +203,11 @@ class GovernanceObject(BaseModel):
                  object_hash=self.object_hash).save()
         else:
             printdbg('VOTE failed, trying to sync with network vote')
-            self.sync_network_vote(darksilkd, signal)
+            self.sync_network_vote(dynamicd, signal)
 
-    def sync_network_vote(self, darksilkd, signal):
+    def sync_network_vote(self, dynamicd, signal):
         printdbg('\tsyncing network vote for object %s with signal %s' % (self.object_hash, signal.name))
-        vote_info = darksilkd.get_my_gobject_votes(self.object_hash)
+        vote_info = dynamicd.get_my_gobject_votes(self.object_hash)
         for vdikt in vote_info:
             if vdikt['signal'] != signal.name:
                 continue
@@ -257,13 +257,13 @@ class Proposal(GovernanceClass, BaseModel):
     payment_amount = DecimalField(max_digits=16, decimal_places=8)
     object_hash = CharField(max_length=64)
 
-    govobj_type = DARKSILKD_GOVOBJ_TYPES['proposal']
+    govobj_type = DYNAMICD_GOVOBJ_TYPES['proposal']
 
     class Meta:
         db_table = 'proposals'
 
     def is_valid(self):
-        import darksilklib
+        import dynamiclib
 
         printdbg("In Proposal#is_valid, for Proposal: %s" % self.__dict__)
 
@@ -288,9 +288,9 @@ class Proposal(GovernanceClass, BaseModel):
                 printdbg("\tProposal amount [%s] is negative or zero, returning False" % self.payment_amount)
                 return False
 
-            # payment address is valid base58 darksilk addr, non-multisig
-            if not darksilklib.is_valid_darksilk_address(self.payment_address, config.network):
-                printdbg("\tPayment address [%s] not a valid DarkSilk address for network [%s], returning False" % (self.payment_address, config.network))
+            # payment address is valid base58 dynamic addr, non-multisig
+            if not dynamiclib.is_valid_dynamic_address(self.payment_address, config.network):
+                printdbg("\tPayment address [%s] not a valid Dynamic address for network [%s], returning False" % (self.payment_address, config.network))
                 return False
 
             # URL
@@ -330,7 +330,7 @@ class Proposal(GovernanceClass, BaseModel):
         if (self.end_epoch < (misc.now() - thirty_days)):
             return True
 
-        # TBD (item moved to external storage/DarkSilkDrive, etc.)
+        # TBD (item moved to external storage/DynamicDrive, etc.)
         return False
 
     @classmethod
@@ -362,17 +362,17 @@ class Proposal(GovernanceClass, BaseModel):
             return rank
 
     def get_prepare_command(self):
-        import darksilklib
-        obj_data = darksilklib.SHIM_serialise_for_darksilkd(self.serialise())
+        import dynamiclib
+        obj_data = dynamiclib.SHIM_serialise_for_dynamicd(self.serialise())
 
         # new superblocks won't have parent_hash, revision, etc...
         cmd = ['gobject', 'prepare', '0', '1', str(int(time.time())), obj_data]
 
         return cmd
 
-    def prepare(self, darksilkd):
+    def prepare(self, dynamicd):
         try:
-            object_hash = darksilkd.rpc_command(*self.get_prepare_command())
+            object_hash = dynamicd.rpc_command(*self.get_prepare_command())
             printdbg("Submitted: [%s]" % object_hash)
             self.go.object_fee_tx = object_hash
             self.go.save()
@@ -393,14 +393,14 @@ class Superblock(BaseModel, GovernanceClass):
     sb_hash = CharField()
     object_hash = CharField(max_length=64)
 
-    govobj_type = DARKSILKD_GOVOBJ_TYPES['superblock']
-    only_stormnode_can_submit = True
+    govobj_type = DYNAMICD_GOVOBJ_TYPES['superblock']
+    only_dynode_can_submit = True
 
     class Meta:
         db_table = 'superblocks'
 
     def is_valid(self):
-        import darksilklib
+        import dynamiclib
         import decimal
 
         printdbg("In Superblock#is_valid, for SB: %s" % self.__dict__)
@@ -408,7 +408,7 @@ class Superblock(BaseModel, GovernanceClass):
         # it's a string from the DB...
         addresses = self.payment_addresses.split('|')
         for addr in addresses:
-            if not darksilklib.is_valid_darksilk_address(addr, config.network):
+            if not dynamiclib.is_valid_dynamic_address(addr, config.network):
                 printdbg("\tInvalid address [%s], returning False" % addr)
                 return False
 
@@ -442,12 +442,12 @@ class Superblock(BaseModel, GovernanceClass):
 
     def is_deletable(self):
         # end_date < (current_date - 30 days)
-        # TBD (item moved to external storage/DarkSilkDrive, etc.)
+        # TBD (item moved to external storage/DynamicDrive, etc.)
         pass
 
     def hash(self):
-        import darksilklib
-        return darksilklib.hashit(self.serialise())
+        import dynamiclib
+        return dynamiclib.hashit(self.serialise())
 
     def hex_hash(self):
         return "%x" % self.hash()
@@ -465,7 +465,7 @@ class Superblock(BaseModel, GovernanceClass):
             'proposal_hashes'
         ]
 
-    # has this stormnode voted to fund *any* superblocks at the given
+    # has this dynode voted to fund *any* superblocks at the given
     # event_block_height?
     @classmethod
     def is_voted_funding(self, ebh):
@@ -553,37 +553,37 @@ class Watchdog(BaseModel, GovernanceClass):
     created_at = IntegerField()
     object_hash = CharField(max_length=64)
 
-    govobj_type = DARKSILKD_GOVOBJ_TYPES['watchdog']
-    only_stormnode_can_submit = True
+    govobj_type = DYNAMICD_GOVOBJ_TYPES['watchdog']
+    only_dynode_can_submit = True
 
     @classmethod
-    def active(self, darksilkd):
+    def active(self, dynamicd):
         now = int(time.time())
         resultset = self.select().where(
-            self.created_at >= (now - darksilkd.SENTINEL_WATCHDOG_MAX_SECONDS)
+            self.created_at >= (now - dynamicd.SENTINEL_WATCHDOG_MAX_SECONDS)
         )
         return resultset
 
     @classmethod
-    def expired(self, darksilkd):
+    def expired(self, dynamicd):
         now = int(time.time())
         resultset = self.select().where(
-            self.created_at < (now - darksilkd.SENTINEL_WATCHDOG_MAX_SECONDS)
+            self.created_at < (now - dynamicd.SENTINEL_WATCHDOG_MAX_SECONDS)
         )
         return resultset
 
-    def is_expired(self, darksilkd):
+    def is_expired(self, dynamicd):
         now = int(time.time())
-        return (self.created_at < (now - darksilkd.SENTINEL_WATCHDOG_MAX_SECONDS))
+        return (self.created_at < (now - dynamicd.SENTINEL_WATCHDOG_MAX_SECONDS))
 
-    def is_valid(self, darksilkd):
-        if self.is_expired(darksilkd):
+    def is_valid(self, dynamicd):
+        if self.is_expired(dynamicd):
             return False
 
         return True
 
-    def is_deletable(self, darksilkd):
-        if self.is_expired(darksilkd):
+    def is_deletable(self, dynamicd):
+        if self.is_expired(dynamicd):
             return True
 
         return False

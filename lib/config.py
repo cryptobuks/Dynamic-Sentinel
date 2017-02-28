@@ -3,25 +3,25 @@
 """
 import sys
 import os
-from darksilk_config import DarkSilkConfig
+from dynamic_config import DynamicConfig
 
 default_sentinel_config = os.path.normpath(
     os.path.join(os.path.dirname(__file__), '../sentinel.conf')
 )
 sentinel_config_file = os.environ.get('SENTINEL_CONFIG', default_sentinel_config)
-sentinel_cfg = DarkSilkConfig.tokenize(sentinel_config_file)
+sentinel_cfg = DynamicConfig.tokenize(sentinel_config_file)
 
 
-def get_darksilk_conf():
+def get_dynamic_conf():
     home = os.environ.get('HOME')
 
-    darksilk_conf = os.path.join(home, ".darksilk/darksilk.conf")
+    dynamic_conf = os.path.join(home, ".dynamic/dynamic.conf")
     if sys.platform == 'darwin':
-        darksilk_conf = os.path.join(home, "Library/Application Support/DarkSilk/darksilk.conf")
+        dynamic_conf = os.path.join(home, "Library/Application Support/Dynamic/dynamic.conf")
 
-    darksilk_conf = sentinel_cfg.get('darksilk_conf', darksilk_conf)
+    dynamic_conf = sentinel_cfg.get('dynamic_conf', dynamic_conf)
 
-    return darksilk_conf
+    return dynamic_conf
 
 
 def get_network():
@@ -77,6 +77,6 @@ def get_db_conn():
     return db
 
 
-darksilk_conf = get_darksilk_conf()
+dynamic_conf = get_dynamic_conf()
 network = get_network()
 db = get_db_conn()

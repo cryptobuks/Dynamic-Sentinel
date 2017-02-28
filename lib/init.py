@@ -57,23 +57,23 @@ def is_database_correctly_configured():
     return configured
 
 
-def has_darksilk_conf():
+def has_dynamic_conf():
     import config
     import io
 
-    valid_darksilk_conf = False
+    valid_dynamic_conf = False
 
-    # ensure darksilk_conf exists & readable
+    # ensure dynamic_conf exists & readable
     #
-    # if not, print a message stating that DarkSilk Core must be installed and
-    # configured, including JSONRPC access in darksilk.conf
+    # if not, print a message stating that Dynamic Core must be installed and
+    # configured, including JSONRPC access in dynamic.conf
     try:
-        f = io.open(config.darksilk_conf)
-        valid_darksilk_conf = True
+        f = io.open(config.dynamic_conf)
+        valid_dynamic_conf = True
     except IOError as e:
         print(e)
 
-    return valid_darksilk_conf
+    return valid_dynamic_conf
 
 
 # === begin main
@@ -95,8 +95,8 @@ def main():
         print("Please ensure correct database configuration.")
         sys.exit(1)
 
-    if not has_darksilk_conf():
-        print("DarkSilk Core must be installed and configured, including JSONRPC access in darksilk.conf")
+    if not has_dynamic_conf():
+        print("Dynamic Core must be installed and configured, including JSONRPC access in dynamic.conf")
         sys.exit(1)
 
 
