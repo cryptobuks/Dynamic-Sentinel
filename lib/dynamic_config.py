@@ -34,7 +34,7 @@ class DynamicConfig():
         creds = {key: value for (key, value) in match}
 
         # standard Dynamic defaults...
-        default_port = 31650 if (network == 'mainnet') else 31750
+        default_port = 31350 if (network == 'mainnet') else 31450
 
         # use default port for network if not specified in dynamic.conf
         if not ('port' in creds):

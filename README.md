@@ -31,7 +31,7 @@ Make sure the local Dynamic daemon running
 
 Clone the Sentinel repo and install Python dependencies.
 
-    $ git clone https://github.com/silknetwork/dynamic-sentinel.git && cd dynamic-sentinel
+    $ git clone https://github.com/duality-solutions/dynamic-sentinel.git && cd dynamic-sentinel
     $ virtualenv ./venv
     $ ./venv/bin/pip install -r requirements.txt
 
@@ -68,11 +68,11 @@ To view debug output, set the `SENTINEL_DEBUG` environment variable to anything 
 
 ## Contributing
 
-Please follow the [Dynamic guidelines for contributing](https://github.com/silknetwork/dynamic-core/blob/master/CONTRIBUTING.md).
+Please follow the [Dynamic guidelines for contributing](https://github.com/duality-solutions/dynamic-core/blob/master/CONTRIBUTING.md).
 
 Specifically:
 
-* [Contributor Workflow](https://github.com/silknetwork/dynamic-core/blob/master/CONTRIBUTING.md#contributor-workflow)
+* [Contributor Workflow](https://github.com/duality-solutions/dynamic-core/blob/master/CONTRIBUTING.md#contributor-workflow)
 
     To contribute a patch, the workflow is as follows:
 
