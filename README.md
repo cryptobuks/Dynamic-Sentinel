@@ -68,11 +68,11 @@ To view debug output, set the `SENTINEL_DEBUG` environment variable to anything 
 
 ## Contributing
 
-Please follow the [Dynamic guidelines for contributing](https://github.com/duality-solutions/dynamic-core/blob/master/CONTRIBUTING.md).
+Please follow the [Dynamic guidelines for contributing](https://github.com/duality-solutions/dynamic/blob/master/CONTRIBUTING.md).
 
 Specifically:
 
-* [Contributor Workflow](https://github.com/duality-solutions/dynamic-core/blob/master/CONTRIBUTING.md#contributor-workflow)
+* [Contributor Workflow](https://github.com/duality-solutions/dynamic/blob/master/CONTRIBUTING.md#contributor-workflow)
 
     To contribute a patch, the workflow is as follows:
 
@@ -86,4 +86,4 @@ Specifically:
 
 ### License
 
-Released under the MIT license, under the same terms as Dynamic Core itself. See [LICENSE](LICENSE) for more info.
+Released under the MIT license, under the same terms as Dynamic itself. See [LICENSE](LICENSE) for more info.
