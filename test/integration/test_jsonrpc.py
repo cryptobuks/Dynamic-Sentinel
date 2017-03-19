@@ -16,12 +16,12 @@ def test_dynamicd():
     config_text = DynamicConfig.slurp_config_file(config.dynamic_conf)
     network = 'mainnet'
     is_testnet = False
-    genesis_hash = u'0000a2fa14a8ea28a124fc358e9ae8bc5bc8df4ded0fa5cf25f05570c0c58153'
+    genesis_hash = u'00000ce9ce63ee661a41dd01fccaa4407e28e684cf925c58c87374082f07806d'
     for line in config_text.split("\n"):
         if line.startswith('testnet=1'):
             network = 'testnet'
             is_testnet = True
-            genesis_hash = u'000e095576d948220036ce358d053cc95b3cf5aff141da4c49a3c5854f2d991b'
+            genesis_hash = u'0000062a456387458b9983b16ee3bad7cd6e67573db1c77c1b8b9940a130f7c1'
 
     creds = DynamicConfig.get_rpc_creds(config_text, network)
     dynamicd = DynamicDaemon(**creds)
