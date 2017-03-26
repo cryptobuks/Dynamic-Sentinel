@@ -29,7 +29,7 @@ def test_dynamicd():
 
     assert hasattr(dynamicd, 'rpc_connection')
 
-    # Dynamic testnet block 0 hash == 0006dc5ab20561a3e49e112402beb5f451d7e82ce67f394c54480099dc241d88
+    # Dynamic testnet block 0 hash == 0000062a456387458b9983b16ee3bad7cd6e67573db1c77c1b8b9940a130f7c1
     # test commands without arguments
     info = dynamicd.rpc_command('getinfo')
     info_keys = [
@@ -48,4 +48,4 @@ def test_dynamicd():
     assert info['testnet'] is is_testnet
 
     # test commands with args
-    assert dashd.rpc_command('getblockhash', 0) == genesis_hash
+    assert dynamicd.rpc_command('getblockhash', 0) == genesis_hash

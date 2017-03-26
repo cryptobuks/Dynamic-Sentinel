@@ -129,11 +129,11 @@ def check_object_validity(dynamicd):
 
 
 def is_dynamicd_port_open(dynamicd):
-    # test socket open before beginning, display instructive message to SN
+    # test socket open before beginning, display instructive message to MN
     # operators if it's not
     port_open = False
     try:
-        info = dynamicd.rpc_command('getinfo')
+        info = dynamicd.rpc_command('getgovernanceinfo')
         port_open = True
     except (socket.error, JSONRPCException) as e:
         print("%s" % e)
