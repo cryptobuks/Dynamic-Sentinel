@@ -65,7 +65,7 @@ def has_dynamic_conf():
 
     # ensure dynamic_conf exists & readable
     #
-    # if not, print a message stating that Dynamic Core must be installed and
+    # if not, print a message stating that Dynamic must be installed and
     # configured, including JSONRPC access in dynamic.conf
     try:
         f = io.open(config.dynamic_conf)
